@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+tools:context=".MainActivity"
+android:fillViewport="true">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity"
+        android:background="@color/colorWhite"
+        >
+
+
+        <!--  <ImageView-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_height="match_parent"-->
+        <!--        android:src="@drawable/gif_img_btn"-->
+        <!--        android:scaleType="fitXY"-->
+        <!--  />-->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                >
+                <!--0.5  1.5  2.5  0.5-->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:weightSum="470"
+                    >
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="45">
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal"
+                        android:layout_weight="190"
+                        >
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            >
+                            <ImageButton
+                                android:id="@+id/autoConnectImgBtn"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:onClick="autoConnect"
+                                android:src="@drawable/ifautoconnect"
+                                android:scaleType="fitCenter"
+                                android:background="@color/colorWhite"
+                                />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center">
+                                <ImageView
+                                    android:id="@+id/ifConnectImageView"
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
+                                    android:src="@drawable/ifconnect"/>
+                                <TextView
+                                    android:id="@+id/ifConnectTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/ifConnect"
+                                    android:textSize="24sp">
+
+                                </TextView>
+                          </LinearLayout>
+                            <!--ip地址编辑框及其标签-->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="center">
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center"
+                                    android:focusable="true"
+                                    android:focusableInTouchMode="true"
+                                    >
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="IP地址">
+                                    </TextView>
+                                    <EditText
+                                        android:layout_width="150dp"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/edit_ip"
+                                        />
+                                </LinearLayout>
+
+                            <!--端口号编辑框及其标签-->
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center"
+                                    android:layout_marginBottom="40dp"
+                                    android:focusable="true"
+                                    android:focusableInTouchMode="true"
+                                    >
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="端口号">
+                                    </TextView>
+                                    <EditText
+                                        android:layout_width="150dp"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/edit_port"/>
+                                </LinearLayout>
+                            </LinearLayout>
+
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+
+
+
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_weight="190"
+                        android:background="@drawable/bordertop"
+
+                        >
+
+                        <HorizontalScrollView
+                            android:id="@+id/pagesScrollView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:fillViewport="true"
+                            android:scrollbars="none"
+
+                            >
+
+                        <LinearLayout
+                            android:id="@+id/pages"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            >
+
+
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:id="@+id/page1"
+                                >
+
+                                    <!--发送按钮-->
+                                    <Button
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/sendBtn"
+                                        android:text="     发送     "
+                                        android:onClick="onSendBtnClicked"
+                                        android:textColor="@color/colorWhite"
+                                        android:background="@drawable/shape"
+                                        />
+
+                                    <CheckBox
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/checkBox_ifEnableAutoSend"
+                                        android:text="开启剪贴板检测并自动发送"
+                                        android:textColor="@color/colorGray"
+                                        android:onClick="enableAutoSend"/>
+
+                                    <CheckBox
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/checkBox_EnableSend"
+                                        android:text="发送数据到PC"
+                                        android:textColor="@color/colorGray"
+                                        android:onClick="on_checkBox_EnableSendChange"
+                                        android:checked="true"/>
+
+                                    <CheckBox
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/checkBox_EnableReceive"
+                                        android:text="从PC接收数据"
+                                        android:textColor="@color/colorGray"
+                                        android:onClick="on_checkBox_EnableReceiveChange"
+                                        android:checked="true"
+                                        />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="连接密钥："/>
+                                    <TextView
+                                        android:id="@+id/secret"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:textIsSelectable="true"/>
+                                </LinearLayout>
+
+
+                            </LinearLayout>
+
+                             <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical"
+                                    android:gravity="center"
+                                    android:id="@+id/page2"
+                                    android:background="@color/colorWhite">
+                                 <TextView
+                                     android:layout_width="wrap_content"
+                                     android:layout_height="wrap_content"
+                                     android:text="@string/fileStoreIn"/>
+                                 <TextView
+                                     android:layout_width="wrap_content"
+                                     android:layout_height="wrap_content"
+                                     android:text="@string/filePath"/>
+                                 <ListView
+                                     android:id="@+id/fileList"
+                                     android:layout_width="match_parent"
+                                     android:layout_height="match_parent" />
+
+                             </LinearLayout>
+
+                        </LinearLayout>
+
+
+
+                        </HorizontalScrollView>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="45"
+                        android:weightSum="5"
+                        android:gravity="center"
+
+                        >
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
+                            <ImageButton
+                                android:id="@+id/homeTab"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/tabbar"
+                                android:background="@color/colorWhite"
+                                />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
+                            <ImageButton
+                                android:id="@+id/fileTab"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/tabbar"
+                                android:background="@color/colorWhite"
+                                />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+
+
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>
+
+
+
+
+

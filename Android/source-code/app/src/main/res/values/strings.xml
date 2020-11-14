@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Share On Lan</string>
+
+    <string name="ifConnect">未连接</string>
+
+    <string name="fileStoreIn">以下为接收到的文件，储存位置如下</string>
+    <string name="filePath">/storage/emulated/0/ShareOnLan/ReceiveFiles/</string>
+</resources>
