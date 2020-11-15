@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>transfer.png</file>
+        <file>transfer_64.png</file>
+        <file>transfer_64_ico.ico</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/style">
+        <file>style.qss</file>
+        <file>progressUIStyle.qss</file>
+    </qresource>
+</RCC>

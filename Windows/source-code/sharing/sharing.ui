@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>sharing</class>
+ <widget class="QMainWindow" name="sharing">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>360</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>360</width>
+    <height>200</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>sharing</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <property name="maximumSize">
+    <size>
+     <width>360</width>
+     <height>200</height>
+    </size>
+   </property>
+   <property name="font">
+    <font>
+     <family>华文中宋</family>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <widget class="QLineEdit" name="lineEdit_port">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>82</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_port">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>80</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>监听端口</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_autolaunch">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>110</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>开机自启</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_ifautostartup">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>112</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hideMain">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>140</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>启动时隐藏此界面</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_ifhidewhenlaunch">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>142</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_bg">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>360</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="minimalButton">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>3</y>
+      <width>24</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>—</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="closeButton">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>3</y>
+      <width>24</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>×</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>0</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe Script</family>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Sharing</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_secret">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>50</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>连接密钥</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_secret">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>50</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_fileReceiveLocation">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>170</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>文件保存路径</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_fileReceiveLocation">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>172</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_changeFileReceiveLocation">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>172</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_openFileLocationFolder">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>172</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>open</string>
+    </property>
+   </widget>
+   <zorder>label_bg</zorder>
+   <zorder>lineEdit_port</zorder>
+   <zorder>label_port</zorder>
+   <zorder>label_autolaunch</zorder>
+   <zorder>checkBox_ifautostartup</zorder>
+   <zorder>label_hideMain</zorder>
+   <zorder>checkBox_ifhidewhenlaunch</zorder>
+   <zorder>minimalButton</zorder>
+   <zorder>closeButton</zorder>
+   <zorder>label</zorder>
+   <zorder>label_secret</zorder>
+   <zorder>lineEdit_secret</zorder>
+   <zorder>label_fileReceiveLocation</zorder>
+   <zorder>lineEdit_fileReceiveLocation</zorder>
+   <zorder>pushButton_changeFileReceiveLocation</zorder>
+   <zorder>pushButton_openFileLocationFolder</zorder>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

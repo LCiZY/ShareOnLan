@@ -1,0 +1,58 @@
+QPushButton{
+    border-width:1px;
+    border-color:black;
+    border-radius:5px;
+    background-color:rgba(65,105,225,255);
+    color:white;
+}
+
+QPushButton:pressed{
+    border-style:inset;
+    padding-bottom:3px;
+    border-width:1px;
+    border-color:rgb(234, 234, 234);
+    border-radius:5px;
+    background-color:rgba(65,105,225,255);
+    color:white;
+}
+
+QPushButton#closeButton{
+    border-radius:12px;
+    background-color:rgba(255,181,162,255);
+}
+
+QPushButton#minimalButton{
+    border-radius:12px;
+    background-color:rgba(95,217,206,255);
+}
+
+
+QLabel#label_bg{
+    background-color: qconicalgradient(cx:0.5, cy:0.1667, angle:179.9, stop:0.499999 rgba(255, 255, 255, 255), stop:0.5 rgba(234, 234, 234, 255));
+    border-top-left-radius:15px;
+    border-top-right-radius:15px;
+
+}
+
+
+QMenu {
+    background-color: white;
+    margin: 2px; /* some spacing around the menu */
+}
+
+QMenu::item {
+    padding: 2px 25px 2px 20px;
+    margin: 6px 2px 0px 2px;
+    border: 1px solid transparent; /* reserve space for selection border */
+}
+
+QMenu::item:selected {
+    border-color: black;
+    border-radius:3px;
+    background: rgba(195, 195, 195, 150);
+}
+
+QCheckBox::indicator:checked {
+    image: url(:/images/check_box_checked.png);
+}
+
