@@ -87,19 +87,19 @@ Android端是基于Android Studio开发的app
   
 #### Android端未连接/正在连接界面
 
-![Android端未连接/正在连接界面](https://img-blog.csdnimg.cn/20201117165917971.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)  
+![Android端未连接/正在连接界面](https://img-blog.csdnimg.cn/2020111719024772.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)  
 点击蓝色的小飞机会改变并提示当前状态
   ***
   
 #### Android端已连接界面
 
-![Android端已连接界面](https://img-blog.csdnimg.cn/20201117170001658.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)  
+![Android端已连接界面](https://img-blog.csdnimg.cn/20201117190343691.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)  
 此时点击关闭按钮会关闭连接
   ***
   
 #### Android端接收到的文件
 
-![Android端接收到的文件](https://img-blog.csdnimg.cn/2020111717001342.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)
+![Android端接收到的文件](https://img-blog.csdnimg.cn/20201117190403903.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)
   ***
   
 #### Android端处理接收到的文件
