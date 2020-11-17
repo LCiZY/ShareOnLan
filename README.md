@@ -22,7 +22,6 @@ Android端是基于Android Studio开发的app
 
 ## 运行流程
 
-
 **正常流程：**  
 
 1. 由Windows端向所在局域网(LAN)广播UDP包，UDP payload包含PC端的IP、端口号、链接密钥（经过简单加密）。  
@@ -46,28 +45,32 @@ Android端是基于Android Studio开发的app
   
 #### 主界面
 
-![主界面](https://img-blog.csdnimg.cn/20201117165522815.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)
-**连接密钥**：是从安卓端的主界面获取的（作用是自动连接时验证是不是你的PC，如果手动输入IP和端口号的话可以忽略它
-**监听端口**：指定PC在哪个端口监听（有点多余
-**开机自启**：顾名思义
-**启动时隐藏此界面**：不显示此界面，不过还有托盘（双击托盘恢复
-**文件保存路径**：可以自定义保存文件的目录
+![主界面](https://img-blog.csdnimg.cn/20201117165522815.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)  
+
+- **连接密钥**：是从安卓端的主界面获取的（作用是自动连接时验证是不是你的PC，如果手动输入IP和端口号的话可以忽略它
+- **监听端口**：指定PC在哪个端口监听（有点多余
+- **开机自启**：顾名思义
+- **启动时隐藏此界面**：不显示此界面，不过还有托盘（双击托盘恢复
+- **文件保存路径**：可以自定义保存文件的目录
+
 ***
 
 #### PC端托盘菜单
 
-![托盘菜单](https://img-blog.csdnimg.cn/2020111716560479.png#pic_center)
-**发送文本**：点击会自动发送剪贴板里的内容，Android端的剪切板上就会被设置上相同的内容
-**发送文件**：点击后选择文件发送
-**关闭连接**：当你发现PC端说连上了，Android端提示没连上就点一哈
-**重启服务**：软件不好使的时候试试哦，有奇效（依据的是[鸵鸟算法](https://baike.baidu.com/item/%E9%B8%B5%E9%B8%9F%E7%AE%97%E6%B3%95/4342932?fr=aladdin)
-**显示主界面**：显示的是设置界面
-**退出**：非常放心的退出了
+![托盘菜单](https://img-blog.csdnimg.cn/2020111716560479.png#pic_center)  
+
+- **发送文本**：点击会自动发送剪贴板里的内容，Android端的剪切板上就会被设置上相同的内容
+- **发送文件**：点击后选择文件发送
+- **关闭连接**：当你发现PC端说连上了，Android端提示没连上就点一哈
+- **重启服务**：软件不好使的时候试试哦，有奇效（依据的是[鸵鸟算法](https://baike.baidu.com/item/%E9%B8%B5%E9%B8%9F%E7%AE%97%E6%B3%95/4342932?fr=aladdin)
+- **显示主界面**：显示的是设置界面
+- **退出**：非常放心的退出了
+
 ***
 
 #### PC端托盘菜单的ToolTip
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20201117165639313.png#pic_center)
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20201117165639313.png#pic_center)  
 当你有多个网卡是有效的时，会显示多行IP:*** 端口:***  
 ***
 
@@ -84,13 +87,13 @@ Android端是基于Android Studio开发的app
   
 #### Android端未连接/正在连接界面
 
-![Android端未连接/正在连接界面](https://img-blog.csdnimg.cn/20201117165917971.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)
- 点击蓝色的小飞机会改变并提示当前状态
+![Android端未连接/正在连接界面](https://img-blog.csdnimg.cn/20201117165917971.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)  
+点击蓝色的小飞机会改变并提示当前状态
   ***
   
 #### Android端已连接界面
 
-![Android端已连接界面](https://img-blog.csdnimg.cn/20201117170001658.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)
+![Android端已连接界面](https://img-blog.csdnimg.cn/20201117170001658.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)  
 此时点击关闭按钮会关闭连接
   ***
   
@@ -106,5 +109,5 @@ Android端是基于Android Studio开发的app
   
 #### 安卓端发送文件到PC端（选择其他应用打开/分享 → 选择Share On Lan）
 
-![从安卓端发送文件到PC端](https://img-blog.csdnimg.cn/20201117170212941.gif#pic_center)
+![从安卓端发送文件到PC端](https://img-blog.csdnimg.cn/20201117170212941.gif#pic_center)  
 在Android端选择文件然后用其他方式打开选择Share On Lan应用就可以发送了
