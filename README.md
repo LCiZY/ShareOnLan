@@ -51,11 +51,11 @@ Android端是基于Android studio开发的app
 
 ![Android端接收到的文件](https://github.com/LCiZY/ShareOnLan/blob/main/images/filesView.png)
 
-<iframe height=500 width=500 src="https://github.com/LCiZY/ShareOnLan/blob/main/images/operateDemo/openReceivedFile.gif"\>
+<iframe height=500 width=500 src="https://github.com/LCiZY/ShareOnLan/blob/main/images/operateDemo/openReceivedFile.gif"></iframe>  
 
-<iframe height=500 width=500 src="https://github.com/LCiZY/ShareOnLan/blob/main/images/operateDemo/sendFileToPC.gif"\>
+<iframe height=500 width=500 src="https://github.com/LCiZY/ShareOnLan/blob/main/images/operateDemo/sendFileToPC.gif"></iframe>  
 
 ## Bug
 
 1. 长时间运行后Windows端假死
-2. Android端发送文件无提示
+2. Android端发送文件无提示  
