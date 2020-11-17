@@ -14,7 +14,7 @@ Android端是基于Android studio开发的app
 
 ## 运行原理&设计思路
 
-![原理图](https://github.com/LCiZY/ShareOnLan/blob/main/images/prototype.png)
+![image](https://github.com/LCiZY/ShareOnLan/blob/main/images/prototype.png)
 ***
 
 ## 运行流程
