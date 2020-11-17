@@ -45,11 +45,11 @@ Android端是基于Android studio开发的app
 
 ![PC端打开文件储存文件夹](https://github.com/LCiZY/ShareOnLan/blob/main/images/openFileLocateDir.png)
 
-![Android端未连接/正在连接界面](https://github.com/LCiZY/ShareOnLan/blob/main/images/unconnected-connecting.png)
+![Android端未连接/正在连接界面](https://github.com/LCiZY/ShareOnLan/blob/main/images/unconnected-connecting.jpg)
 
-![Android端已连接界面](https://github.com/LCiZY/ShareOnLan/blob/main/images/connected.png)
+![Android端已连接界面](https://github.com/LCiZY/ShareOnLan/blob/main/images/connected.jpg)
 
-![Android端接收到的文件](https://github.com/LCiZY/ShareOnLan/blob/main/images/filesView.png)
+![Android端接收到的文件](https://github.com/LCiZY/ShareOnLan/blob/main/images/filesView.jpg)
 
 <iframe height=500 width=500 src="https://github.com/LCiZY/ShareOnLan/blob/main/images/operateDemo/openReceivedFile.gif"></iframe>  
 
