@@ -21,7 +21,6 @@ QString getFileInfo(QString filePath){
 
         QFileInfo info(filePath);
         QString result =QString(" fileName ")+ info.fileName() + QString(" fileSize ")+QString::number(info.size());
-        qDebug()<<"发送文件信息："<<result;
         Log(QString("发送文件信息：")+result);
     return result;
 
@@ -29,7 +28,7 @@ QString getFileInfo(QString filePath){
 
 
 void Log(QString content){
-
+    qDebug()<<content;
     QFile logFile(conf->configDirectoryPath+QString("/")+conf->logFileName);
     if(logFile.open(QIODevice::Append)){
         QTextStream out(&logFile); out.setCodec("UTF-8");

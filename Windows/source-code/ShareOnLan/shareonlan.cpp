@@ -1,7 +1,6 @@
 #include "shareonlan.h"
 #include "ui_shareonlan.h"
 
-#include<QDebug>
 
 ShareOnLan::ShareOnLan(QWidget *parent) :
     QMainWindow(parent),
@@ -29,19 +28,19 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     connect(fileserver,SIGNAL(newFileConnection()),this,SLOT(showProgressUI()));
     connect(fileserver,SIGNAL(fileTransferDone()),this,SLOT(progressUIDestroy()));
     connect(fileserver,SIGNAL(currFileInfo(int,QString)),this,SLOT(setProgressInfo(int,QString)));
+    connect(fileserver,SIGNAL(receiveProgress(qint64)),this,SLOT(progressUIChange(qint64)));
+    connect(fileserver,SIGNAL(sendProgress(qint64)),this,SLOT(progressUIChange(qint64)));
+
 
 }
 
 ShareOnLan::~ShareOnLan()
 {
-    qDebug()<<"析构调用";
     Log("析构调用");
-
     conf->deleteLater();
     fileserver->deleteLater();
     delete ui;
     Log("析构调用完成");
-    qDebug()<<"析构调用完成";
 }
 
 void ShareOnLan::windowInit(){
@@ -279,11 +278,13 @@ void  ShareOnLan::showProgressUI(){
     if(this->progressui!=nullptr) { progressui->show(); return;}
      progressui = new progressUI(nullptr);
      connect(progressui,SIGNAL(destroyed(QObject*)),this,SLOT(progressUIDestroy()));
-     connect(fileserver,SIGNAL(receiveProgress(qint64)),this,SLOT(progressUIChange(qint64)));
-     connect(fileserver,SIGNAL(sendProgress(qint64)),this,SLOT(progressUIChange(qint64)));
      progressui->showAtBottomRight();
 
 }
+
+
+
+
 
 void  ShareOnLan::setProgressInfo(int fileSize, QString fileName){
     if(this->progressui==nullptr) return;
@@ -382,7 +383,7 @@ bool ShareOnLan::detectSingleInstance(){
         QLocalSocket socket;
         socket.connectToServer(serverName);
         if (socket.waitForConnected(500)) { //如果能够连接得上的话，将参数发送到服务器，然后退出
-            qDebug()<<"程序已经运行";
+            Log("程序已经运行");
             return true;
         }
     //运行到这里，说明没有实例在运行，那么创建服务器。

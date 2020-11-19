@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         Config.writeConfigToFile();
     }
 
-    private void sendMessage(String msg){
+    public void sendMessage(String msg){
         if(writeChannelThread==null) return;
         writeChannelThread.setMsg(msg);
         writeChannelThread.interrupt();

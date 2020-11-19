@@ -31,7 +31,7 @@ progressUI::progressUI(QWidget *parent) :
 progressUI::~progressUI()
 {
     delete ui;
-    qDebug()<<"Progressui Deconstruction Invoked.";
+    Log("Progressui Deconstruction Invoked.");
 }
 
 
@@ -41,15 +41,16 @@ void progressUI::changeUI(qint64 progress){
 
 void progressUI::changeUILinearly(){
     if(ui->progressBar->value()<transferCount){
-        if(transferCount==ui->progressBar->maximum()){ui->progressBar->setValue(transferCount);linearIncreateBarTimer->stop();  }
+        if(transferCount>=ui->progressBar->maximum()){ui->progressBar->setValue(ui->progressBar->maximum());linearIncreateBarTimer->stop();  }
         else ui->progressBar->setValue(ui->progressBar->value()+dlength);
     }else
-    if(transferCount==ui->progressBar->maximum()){ui->progressBar->setValue(transferCount);linearIncreateBarTimer->stop();  }
+    if(transferCount>=ui->progressBar->maximum()){ui->progressBar->setValue(ui->progressBar->maximum());linearIncreateBarTimer->stop();  }
 }
 
 void  progressUI::setCurrTaskInfo(int fileSize,  QString fileName){
     ui->progressBar->setMaximum(fileSize);
     ui->label_tooltip->setText(tr("正在传输文件：")+fileName);
+    ui->label_tooltip->setToolTip(fileName);
     ui->progressBar->setValue(0);
     dlength = fileSize/100;
     transferCount = 0;

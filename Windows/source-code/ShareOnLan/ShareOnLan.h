@@ -95,7 +95,6 @@ public:
     void sysTrayTextChange();
 
 
-
     bool detectSingleInstance();
 private:
 

@@ -46,12 +46,11 @@ public class tcpConnectionReadChannelThread extends tcpConnectionChannel {
                if(str.indexOf(ConnectionInfo.FILEINFOCONTROLMESSAGE)==0) {//PC端告知本移动端 要发送文件 并 发来文件信息
                    ConnectionInfo.processReceiveFileInfo(str);
                    MainActivity.instance.receiveFile();
-               }
-               if(str.contentEquals(ConnectionInfo.FILEINFORESPONSE))//PC端告知本移动端 已收到 文件名和文件大小的信息
+               }else if(str.contentEquals(ConnectionInfo.FILEINFORESPONSE))//PC端告知本移动端 已收到 文件名和文件大小的信息
                    MainActivity.instance.sendFile(ConnectionInfo.sendFileName);
                else
                    MainActivity.clipboard.setText(receiveStr);
-           }
+           }else if(ConnectionInfo.RESPONSE.equals(str)){ MainActivity.instance.sendMessage(ConnectionInfo.RESPONSE+"\n");   }
 
         }
 

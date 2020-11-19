@@ -19,16 +19,14 @@ msgServer::~msgServer(){
 
 void msgServer::incomingConnection(int descriptor){
 
-    if(this->socket!=nullptr){qDebug()<<"已存在其他TCP连接！拒绝连接";Log(tr("已存在其他TCP连接！拒绝连接"));  return;}
+    if(this->socket!=nullptr){Log(tr("已存在其他TCP连接！拒绝连接"));  return;}
     pauseAccepting();
     this->socket = new QTcpSocket(this);
     this->socket->setSocketDescriptor(descriptor);
     this->socket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
-    if(!this->socket->waitForConnected()) {qDebug()<<"错误："<<this->socket->errorString();Log(this->socket->errorString());}
+    if(!this->socket->waitForConnected()) {Log(tr("error:%1").arg(this->socket->errorString()));}
     connect(socket,SIGNAL(readyRead()),this,SLOT(readMsg()));
     connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
-
-    qDebug()<<"接受socket连接："<<descriptor<<"ip:"<<getIPv4(socket->peerAddress().toIPv4Address())<<"   port:"<<socket->peerPort();
 
     Log(tr("接受socket连接：")+QString::number(descriptor)+tr("  ip:")+getIPv4( socket->peerAddress().toIPv4Address())+tr("  port:")+QString::number(socket->peerPort()));
     //发送client改变消息
@@ -38,8 +36,7 @@ void msgServer::incomingConnection(int descriptor){
 void msgServer::socketDisconnect(){
 
     if(this->socket!=nullptr){
-        qDebug()<<"socket断开："<<this->socket->socketDescriptor();
-        Log(tr("socket断开：")+QString::number(this->socket->socketDescriptor()));
+        Log(tr("控制连接断开：")+QString::number(this->socket->socketDescriptor()));
         disconnect(socket,SIGNAL(readyRead()),this,SLOT(readMsg()));
         disconnect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
         this->socket->deleteLater();
@@ -64,10 +61,9 @@ void msgServer::readMsg(){
 
 
 
-        qDebug()<<"接收到移动端："<<lastMsg;
-        Log(tr("接收到移动端：")+lastMsg);
 
-        if(lastMsg.indexOf("${FILEINFO}")==0){//如果是文件信息
+        if(lastMsg.indexOf("${FILEINFO}")==0){//如果是文件信息罅
+            Log(tr("接收到移动端文件信息：")+lastMsg);
             QStringList splices = lastMsg.split(" ");
             for(int i=1;i+1<splices.size();i+=2){
                 if(splices.at(i)=="fileName")      receiveFilesNameQueue.enqueue(splices.at(i+1));
@@ -75,8 +71,11 @@ void msgServer::readMsg(){
             }
             //自动回复: FILEINFO R\n
             this->socket->write(FILEINFORESPONSE,strlen(FILEINFORESPONSE));
-        }else{//剪贴板信息，写入剪贴板
-
+        }else if(lastMsg.compare(RESPONSE)==0){
+           if(this->msgHeartStack.size()) this->msgHeartStack.pop();
+        }
+        else{//文本信息，写入剪贴板
+            Log(tr("接收到移动端文本消息：")+lastMsg);
             QClipboard *board = QApplication::clipboard();
             board->setText(lastMsg);msgList.append(lastMsg);
             //自动回复: R\n
@@ -134,9 +133,10 @@ void msgServer::timerEvent(QTimerEvent *){
     //每8秒自动回复: R\n
     if(this->socket!=nullptr){
       //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
-        if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0;} Log("检测到连接异常，自动断开"); }
+        if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0;} Log("检测到连接异常-1，自动断开"); }
         this->socket->write(RESPONSE,strlen(RESPONSE));
         this->socket->waitForBytesWritten();
+        msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear(); Log("检测到连接异常-2，自动断开"); }
     }else if(ipList.size()!=0){
         if(timeEventPlayTimes==ipList.size()){ timeEventPlayTimes=0; }
         netInfoStr = ipList.at(timeEventPlayTimes%ipList.size())+tr(" ")+conf->getConfig("port")+tr(" "); timeEventPlayTimes++;

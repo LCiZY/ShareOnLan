@@ -12,6 +12,7 @@
 #include<globaldata.h>
 #include<QHostInfo>
 #include<QNetworkInterface>
+#include<QStack>
 
 
 
@@ -28,6 +29,7 @@ public:
     const char* RESPONSE = "R\n";
     const char* FILEINFORESPONSE="FILEINFO R\n";
     const int timeOutValue = 10;
+    QStack<int> msgHeartStack;
 
     int listeningPort;
 

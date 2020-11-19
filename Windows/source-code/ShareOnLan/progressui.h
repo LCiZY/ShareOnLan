@@ -5,6 +5,8 @@
 #include<QMouseEvent>
 #include<QTimer>
 #include<QDesktopWidget>
+#include<globaldata.h>
+
 #include<QDebug>
 
 namespace Ui {

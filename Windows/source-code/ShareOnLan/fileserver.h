@@ -20,6 +20,7 @@
 
 
 
+
 class FileSocket : public QTcpSocket
 {
     Q_OBJECT
@@ -78,10 +79,6 @@ private:
     FileSocket* fileSocket;
     QThread* sendFileThread;
     QThread* receiveFileThread;
-
-
-
-
 
 
 
