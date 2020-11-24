@@ -41,16 +41,21 @@ public class tcpConnectionReadChannelThread extends tcpConnectionChannel {
             str = str.replace(ConnectionInfo.REPLACER,"\r");
 
             System.out.println("--------------------------------------------------接收数据："+str);
-           if(!ConnectionInfo.RESPONSE.equals(str)&&ConnectionInfo.ifReceive&&str.trim().length()>0) {
+           if(!ConnectionInfo.RESPONSE.equals(str)&&ConnectionInfo.ifReceive) {
+               //如果不是”控制连接“消息
                receiveStr = str;
                if(str.indexOf(ConnectionInfo.FILEINFOCONTROLMESSAGE)==0) {//PC端告知本移动端 要发送文件 并 发来文件信息
                    ConnectionInfo.processReceiveFileInfo(str);
                    MainActivity.instance.receiveFile();
                }else if(str.contentEquals(ConnectionInfo.FILEINFORESPONSE))//PC端告知本移动端 已收到 文件名和文件大小的信息
                    MainActivity.instance.sendFile(ConnectionInfo.sendFileName);
-               else
+               else { //普通文本
                    MainActivity.clipboard.setText(receiveStr);
-           }else if(ConnectionInfo.RESPONSE.equals(str)){ MainActivity.instance.sendMessage(ConnectionInfo.RESPONSE+"\n");   }
+               }
+           }else if(ConnectionInfo.RESPONSE.equals(str)){
+               //如果是”控制连接“消息，回应一个”控制连接“消息报文
+               MainActivity.instance.sendMessage(ConnectionInfo.RESPONSE+"\n");
+           }
 
         }
 
