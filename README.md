@@ -104,7 +104,7 @@ Android端是基于Android Studio开发的app
   
 #### Android端处理接收到的文件
 
-![安卓端处理接收到的文件](https://img-blog.csdnimg.cn/20201117170148652.gif#pic_center)
+![安卓端处理接收到的文件](https://img-blog.csdnimg.cn/20201201172021599.gif#pic_center)
   ***
   
 #### 安卓端发送文件到PC端（选择其他应用打开/分享 → 选择Share On Lan）
