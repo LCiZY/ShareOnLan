@@ -9,13 +9,15 @@
     android:layout_marginRight="10dp"
     >
 
-<ImageView
-    android:id="@+id/itemImage"
-    android:layout_width="60dp"
-    android:layout_height="60dp"
-    android:src="@drawable/file_item"
-    android:scaleType="centerInside"
-    android:background="@color/colorWhite"/>
+    <ImageView
+        android:id="@+id/itemImage"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/file_items"
+        android:scaleType="centerInside"
+        android:background="@color/colorWhite"
+        android:padding="8dp"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,15 +27,15 @@
         android:id="@+id/itemTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="title"
-        android:textSize="20dp"/>
+        android:text="fileName"
+        android:textSize="16dp"/>
         <TextView
             android:id="@+id/itemTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="createdTime:2019-2-23"
-            android:textSize="15dp"/>
+            android:text="lastModifiedTime:2019-2-23"
+            android:textSize="12dp"/>
 
     </LinearLayout>
 

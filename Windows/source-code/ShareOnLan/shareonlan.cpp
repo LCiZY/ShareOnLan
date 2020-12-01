@@ -202,6 +202,8 @@ void ShareOnLan::openFileLocationFolder(){
 void ShareOnLan::clientChange(){
     //托盘tooltip改变
     sysTrayTextChange();
+    //如果控制连接断开：进度条页面存在则关闭； 关闭filesocket
+    if(!server->ifConnected()) { if(this->progressui!=nullptr) progressUIDestroy(); fileserver->closeSocket();  }
 }
 
 void ShareOnLan::sysTrayTextChange(){
@@ -239,14 +241,18 @@ void ShareOnLan::on_showMainAction(){
 }
 
 
-//断开所有连接
+//断开所有连接,清空文件接收队列
 void ShareOnLan::on_clearConnection(){
     server->closeSocket();
     fileserver->closeSocket();
+    //清空文件接收队列
+    receiveFilesNameQueue.clear();
+    receiveFilesSizeQueue.clear();
 }
 
 //重启server：重新监听端口并resume连接并重新检测网络信息
 void ShareOnLan::on_restartServer(){
+    on_clearConnection();
     server->getLanBrocastAddress();
     server->serverShutDown();
     fileserver->serverShutDown();
@@ -281,9 +287,6 @@ void  ShareOnLan::showProgressUI(){
      progressui->showAtBottomRight();
 
 }
-
-
-
 
 
 void  ShareOnLan::setProgressInfo(int fileSize, QString fileName){

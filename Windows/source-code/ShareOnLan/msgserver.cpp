@@ -27,8 +27,7 @@ void msgServer::incomingConnection(int descriptor){
     if(!this->socket->waitForConnected()) {Log(tr("error:%1").arg(this->socket->errorString()));}
     connect(socket,SIGNAL(readyRead()),this,SLOT(readMsg()));
     connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
-
-    Log(tr("接受socket连接：")+QString::number(descriptor)+tr("  ip:")+getIPv4( socket->peerAddress().toIPv4Address())+tr("  port:")+QString::number(socket->peerPort()));
+    Log(tr("接收到控制连接：")+QString::number(descriptor)+tr("  ip:")+getIPv4( socket->peerAddress().toIPv4Address())+tr("  port:")+QString::number(socket->peerPort()));
     //发送client改变消息
     emit(clientChange());
 }
@@ -41,7 +40,9 @@ void msgServer::socketDisconnect(){
         disconnect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
         this->socket->deleteLater();
         this->socket = nullptr;
-
+        //清空文件接收队列
+        receiveFilesNameQueue.clear();
+        receiveFilesSizeQueue.clear();
         //恢复监听
         resumeAccepting();
         //发送client改变消息
@@ -62,9 +63,9 @@ void msgServer::readMsg(){
 
 
 
-        if(lastMsg.indexOf("${FILEINFO}")==0){//如果是文件信息罅
+        if(lastMsg.indexOf("${FILEINFO}")==0){//如果是文件信息
             Log(tr("接收到移动端文件信息：")+lastMsg);
-            QStringList splices = lastMsg.split(" ");
+            QStringList splices = lastMsg.split("|");
             for(int i=1;i+1<splices.size();i+=2){
                 if(splices.at(i)=="fileName")      receiveFilesNameQueue.enqueue(splices.at(i+1));
                 else if(splices.at(i)=="fileSize") receiveFilesSizeQueue.enqueue(splices.at(i+1));
@@ -88,12 +89,11 @@ void msgServer::readMsg(){
 
 void msgServer::sendMsg(QString msg){
 
-    //将换行符用其他字符替代
-    msg = msg.replace("\r",REPLACER);
-    msg = msg.replace("\n",REPLACEN);
-
-    msg = msg + "\n";
     if(this->socket!=nullptr){
+        //将换行符用其他字符替代
+        msg = msg.replace("\r",REPLACER);
+        msg = msg.replace("\n",REPLACEN);
+        msg = msg + "\n";
         std::string temp = msg.toStdString();
         this->socket->write(temp.c_str(),strlen(temp.c_str()));
     }
@@ -144,7 +144,7 @@ void msgServer::timerEvent(QTimerEvent *){
         QString info = encrypt(netInfoStr+conf->getConfig("secret"));
         std::string strTemp= info.toStdString();
         const char* temp = strTemp.c_str();
-        qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"加密后："<<temp;
+        qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"  加密后："<<temp;
         this->udpSocket->writeDatagram(temp,strlen(temp),host,56789);
         this->udpSocket->waitForBytesWritten();
     }

@@ -18,6 +18,7 @@ extern QQueue<QString> receiveFilesSizeQueue;
 extern QStringList ipList;
 extern QString secret;
 extern config *conf;
+extern const int FILESENDBUFFERSIZE;
 extern const int FILEBUFFERSIZE;
 extern int fileSize;
 extern int receiveSize;

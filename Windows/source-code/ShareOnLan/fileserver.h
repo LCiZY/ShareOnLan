@@ -69,7 +69,6 @@ signals:
 public slots:
     void socketDisconnect();
 
-
 protected:
 
     void incomingConnection(int descriptor);

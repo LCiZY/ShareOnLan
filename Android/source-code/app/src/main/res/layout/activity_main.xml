@@ -41,14 +41,22 @@ android:fillViewport="true">
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:weightSum="470"
+                    android:weightSum="460"
                     >
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
-                        android:layout_weight="45">
+                        android:layout_weight="45"
+                        android:gravity="end">
 
+                        <ImageView
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="10dp"
+                            android:id="@+id/more_dots"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/setting"/>
                     </LinearLayout>
 
 
@@ -65,11 +73,12 @@ android:fillViewport="true">
                             android:layout_height="match_parent"
                             android:orientation="vertical"
                             android:gravity="center"
+
                             >
                             <ImageButton
                                 android:id="@+id/autoConnectImgBtn"
-                                android:layout_width="50dp"
-                                android:layout_height="50dp"
+                                android:layout_width="80dp"
+                                android:layout_height="80dp"
                                 android:onClick="autoConnect"
                                 android:src="@drawable/ifautoconnect"
                                 android:scaleType="fitCenter"
@@ -81,17 +90,28 @@ android:fillViewport="true">
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
                                 android:gravity="center">
+
+                                <com.sol.component.spinkit.SpinKitView
+                                        android:id="@+id/connnecting_ani"
+                                        style="@style/SpinKitView.Large.Wave"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        android:visibility="gone"
+                                        app:SpinKit_Color="@color/colorBlue1" />
+
+
                                 <ImageView
                                     android:id="@+id/ifConnectImageView"
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
                                     android:src="@drawable/ifconnect"/>
                                 <TextView
                                     android:id="@+id/ifConnectTextView"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/ifConnect"
-                                    android:textSize="24sp">
+                                    android:textSize="16sp">
 
                                 </TextView>
                           </LinearLayout>
@@ -160,7 +180,6 @@ android:fillViewport="true">
                         android:orientation="vertical"
                         android:gravity="center"
                         android:layout_weight="190"
-                        android:background="@drawable/bordertop"
 
                         >
 
@@ -171,7 +190,8 @@ android:fillViewport="true">
                             android:orientation="vertical"
                             android:fillViewport="true"
                             android:scrollbars="none"
-
+                            android:fadingEdge="none"
+                            android:overScrollMode="never"
                             >
 
                         <LinearLayout
@@ -208,26 +228,10 @@ android:fillViewport="true">
                                         android:id="@+id/checkBox_ifEnableAutoSend"
                                         android:text="开启剪贴板检测并自动发送"
                                         android:textColor="@color/colorGray"
-                                        android:onClick="enableAutoSend"/>
-
-                                    <CheckBox
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:id="@+id/checkBox_EnableSend"
-                                        android:text="发送数据到PC"
-                                        android:textColor="@color/colorGray"
-                                        android:onClick="on_checkBox_EnableSendChange"
-                                        android:checked="true"/>
-
-                                    <CheckBox
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:id="@+id/checkBox_EnableReceive"
-                                        android:text="从PC接收数据"
-                                        android:textColor="@color/colorGray"
-                                        android:onClick="on_checkBox_EnableReceiveChange"
-                                        android:checked="true"
+                                        android:onClick="enableAutoSend"
                                         />
+
+
 
                                 <LinearLayout
                                     android:layout_width="wrap_content"
@@ -254,18 +258,21 @@ android:fillViewport="true">
                                     android:gravity="center"
                                     android:id="@+id/page2"
                                     android:background="@color/colorWhite">
-                                 <TextView
-                                     android:layout_width="wrap_content"
-                                     android:layout_height="wrap_content"
-                                     android:text="@string/fileStoreIn"/>
-                                 <TextView
-                                     android:layout_width="wrap_content"
-                                     android:layout_height="wrap_content"
-                                     android:text="@string/filePath"/>
-                                 <ListView
-                                     android:id="@+id/fileList"
+
+                                 <com.sol.component.circlerefresh.CircleRefreshLayout
+                                     app:AniBackColor="#ffffffff"
+                                     app:AniForeColor="#4a5fe2"
+                                     app:CircleSmaller="6"
+                                     android:id="@+id/refresh_layout"
                                      android:layout_width="match_parent"
-                                     android:layout_height="match_parent" />
+                                     android:layout_height="match_parent">
+                                     <ListView
+                                         android:background="#ffffffff"
+                                         android:id="@+id/fileList"
+                                         android:layout_width="match_parent"
+                                         android:layout_height="match_parent"
+                                         android:overScrollMode="never"/>
+                                 </com.sol.component.circlerefresh.CircleRefreshLayout>
 
                              </LinearLayout>
 
@@ -281,14 +288,20 @@ android:fillViewport="true">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
-                        android:layout_weight="45"
+                        android:layout_weight="35"
                         android:weightSum="5"
                         android:gravity="center"
-
+                        android:background="@drawable/bordertop"
                         >
-
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
+
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center">
@@ -302,14 +315,14 @@ android:fillViewport="true">
                                 />
                         </LinearLayout>
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center">
 
                         </LinearLayout>
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center">
@@ -322,7 +335,13 @@ android:fillViewport="true">
                                 android:background="@color/colorWhite"
                                 />
                         </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
 
+                        </LinearLayout>
                     </LinearLayout>
 
 

@@ -29,9 +29,14 @@ void fileServer::listenOn(int port){
 
 }
 
+
+
 //断开连接，关闭socket
 void fileServer::closeSocket(){
-     if(this->fileSocket!=nullptr)this->fileSocket->close();
+     if(this->fileSocket!=nullptr){
+         this->fileSocket->close();
+         this->fileSocket->deleteLater();
+     }
 }
 
 //服务停止，停止监听端口
@@ -42,6 +47,7 @@ void fileServer::serverShutDown(){
 
 
 void fileServer::incomingConnection(int descriptor){
+    qDebug()<<"file income";
     if(this->fileSocket!=nullptr) { return; }
     pauseAccepting();
     Log(tr("接收到文件传输连接:")+QString::number(descriptor));
@@ -87,7 +93,7 @@ void fileServer::socketDisconnect(){
 
 void fileServer::receiveFile(){
     //设置准备接收文件的大小
-    if(receiveFilesSizeQueue.size()==0||receiveFilesNameQueue.size()==0) {Log("fileServer::receiveFile：文件大小或文件名未知");return; }
+    if(receiveFilesSizeQueue.size()==0||receiveFilesNameQueue.size()==0) {Log("fileServer::receiveFile：文件大小或文件名未知-1");this->fileSocket->close();return; }
     this->setFileSize(receiveFilesSizeQueue.head().toInt());
     //累积接收大小
     receiveSize = 0;
@@ -151,13 +157,18 @@ void FileSocket::sendFile(QString userChooseFileName){
 
     emit currFileInfo((int)sendfile.size(),userChooseFileName);
 
-    char buf[FILEBUFFERSIZE];
+    char *buf= new char[FILESENDBUFFERSIZE];
     qint64 length = 1;
     //耗时操作:发送文件
-    while ((length=sendfile.read(buf,FILEBUFFERSIZE))!=-1&&length!=0) {
+    int count=0;
+    while ((length=sendfile.read(buf,FILESENDBUFFERSIZE))!=-1&&length!=0) {
         this->write(buf,length);
+        count+=length;
         this->waitForBytesWritten();
+        qDebug()<<"读取\\发送："<<count;
     }
+    delete buf;
+
     Log("文件发送完成");
     sendfile.close();
     this->close();
@@ -168,6 +179,10 @@ void FileSocket::sendFile(QString userChooseFileName){
 
 
 void FileSocket::receiveFile(){
+
+    if(receiveFilesSizeQueue.size()==0||receiveFilesNameQueue.size()==0)
+    {Log("fileServer::receiveFile：文件大小或文件名未知-2");this->close(); return; }
+
 
     //读取用户默认保存位置
      QString userChooseFileName = conf->getConfig("fileReceiveLocation")
@@ -186,7 +201,7 @@ void FileSocket::receiveFile(){
         if(receiveSize==0) emit currFileInfo(receiveFilesSizeQueue.head().toInt(),receiveFilesNameQueue.head());
         if(receivefile.open(receiveSize==0?QIODevice::WriteOnly:QIODevice::Append)){
 
-            char buf[FILEBUFFERSIZE];
+            char *buf=new char[FILEBUFFERSIZE];
             qint64 length=1;
 
             //耗时操作，接收文件
@@ -195,6 +210,7 @@ void FileSocket::receiveFile(){
                 receiveSize+=length;
                 emit readProgress(length);
             }
+            delete buf;
             //接收完成
             if(receiveSize>=fileSize){
                  Log(tr("接收文件完成,接收大小:%1 文件保存位置:%2").arg(QString::number(receiveSize)).arg(userChooseFileName));
