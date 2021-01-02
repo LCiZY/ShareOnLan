@@ -3,5 +3,6 @@
         <file>transfer.png</file>
         <file>transfer_64.png</file>
         <file>transfer_64_ico.ico</file>
+        <file>transfer_3d.png</file>
     </qresource>
 </RCC>

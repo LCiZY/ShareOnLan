@@ -16,6 +16,7 @@
 extern QQueue<QString> receiveFilesNameQueue;
 extern QQueue<QString> receiveFilesSizeQueue;
 extern QStringList ipList;
+extern QStringList networkcardList;
 extern QString secret;
 extern config *conf;
 extern const int FILESENDBUFFERSIZE;
@@ -25,6 +26,7 @@ extern int receiveSize;
 extern QString sendFileName;
 
 QString getFileInfo(QString filePath);
+QString formatIPSpace(QString ip);
 
 void Log(QString content);
 

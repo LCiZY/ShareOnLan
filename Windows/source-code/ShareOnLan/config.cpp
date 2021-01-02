@@ -109,6 +109,7 @@ bool config::readConfigFromConfigFile(){
 
             if(splits.size()==2){ //如果配置正确，那么splits的大小应该为2,使用配置文件里的配置
                 configurations[splits.at(0)] = splits.at(1);
+                qDebug()<<splits.at(0)<<splits.at(1);
             }else if(splits.size()>0){//配置错误，使用默认配置
                 configurations[splits.at(0)] = defaultConfigurations[splits.at(0)];
             }
@@ -148,7 +149,7 @@ bool config::writeToConfigFile(QString configurationItem,QString configuration){
         if(!configFile.open(QIODevice::WriteOnly)) return false;
         configs = configs.replace(re,configurationItem+"="+configuration);
         QTextStream out(&configFile); out.setCodec("UTF-8");
-        out << configs.toUtf8()<< "\n";
+        out << configs.toUtf8();
         configFile.close();
     }
     

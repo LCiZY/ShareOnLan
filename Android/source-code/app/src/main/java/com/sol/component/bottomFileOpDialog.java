@@ -9,13 +9,16 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.sol.MainActivity;
 import com.sol.R;
 import com.sol.util.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 public class bottomFileOpDialog {
 
@@ -27,6 +30,7 @@ public class bottomFileOpDialog {
     }
 
     private TextView bottomDialogFileNameTextView;
+    private ImageButton deleteFileBtn;
     private LinearLayout openLayout;
     private LinearLayout shareLayout;
     public Dialog dialog;
@@ -37,10 +41,12 @@ public class bottomFileOpDialog {
         dialog.setContentView(R.layout.fileop_bottom_dialog);
 
         bottomDialogFileNameTextView = dialog.findViewById(R.id.bottomDialogFileNameTextView);
+        deleteFileBtn = dialog.findViewById(R.id.deleteBtn);
         openLayout = dialog.findViewById(R.id.open);
         shareLayout = dialog.findViewById(R.id.share);
 
         bottomDialogFileNameTextView.setText(file.getName());
+        deleteFileBtn.setOnTouchListener(new deleteFileTabListener());
         openLayout.setOnTouchListener(new openFileTabListener());
         shareLayout.setOnTouchListener(new shareFileTabListener());
 
@@ -96,6 +102,27 @@ public class bottomFileOpDialog {
     }
 
 
+    class deleteFileTabListener implements View.OnTouchListener{
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            //调用其他应用打开文件
+            try{
+                final String filename = file.getName();
+                if(file.delete()){ //删除成功
+                    MainActivity.instance.toastOnUI("删除成功~");
+                    new Thread(MainActivity.listViewRunnable).start();
+                    dialog.dismiss();
+                    return true;
+                }
+            }catch (Exception e){
+
+            }
+            //删除失败
+            MainActivity.instance.toastOnUI("文件删除失败");
+            return true;
+        }
+    }
 
 
     class openFileTabListener implements View.OnTouchListener{

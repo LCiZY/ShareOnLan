@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class Config {
 
-    private static HashMap<String,String> configurations = new HashMap<>();
+    private static final HashMap<String,String> configurations = new HashMap<>();
 
     public static  String ROOTDIROTERYNAME;
     public static  String RECEIVEDIROTERYNAME ;

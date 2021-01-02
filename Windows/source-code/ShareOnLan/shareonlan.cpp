@@ -45,9 +45,10 @@ ShareOnLan::~ShareOnLan()
 
 void ShareOnLan::windowInit(){
 
+    ui->right_top_icon_label->setPixmap(QPixmap(":/icon/transfer_3d.png"));
     ui->lineEdit_port->setText(conf->getConfig("port"));valid_port=new QIntValidator(this); valid_port->setRange(1025,65533);ui->lineEdit_port->setValidator(valid_port); ui->lineEdit_port->setToolTip("端口号范围：1025 - 65534");
     ui->checkBox_ifhidewhenlaunch->setChecked(conf->getConfig("ifhidewhenlaunch").compare("true")==0);
-    ui->checkBox_ifautostartup->setChecked(conf->getConfig("ifautoStartup").compare("true")==0);
+    ui->checkBox_ifautostartup->setChecked(conf->getConfig("automaticStartup").compare("true")==0);
     ui->lineEdit_secret->setText(conf->getConfig("secret")); ui->lineEdit_secret->setToolTip("输入手机APP上的密钥");
     ui->lineEdit_fileReceiveLocation->setText(conf->getConfig("fileReceiveLocation"));
     ui->lineEdit_fileReceiveLocation->setToolTip(ui->lineEdit_fileReceiveLocation->text());
@@ -121,8 +122,8 @@ void ShareOnLan::sysTrayMenuInit(){
         mSendFile = new QAction(tr("发送文件"),mMenu);
         connect(mSendFile,SIGNAL(triggered()),this,SLOT(on_SendFile()));
 
-        mClearConnectionAction = new QAction(tr("关闭连接"),mMenu);
-        connect(mClearConnectionAction,SIGNAL(triggered()),this,SLOT(on_clearConnection()));
+        mConnectInfoAction = new QAction(tr("本机IP"),mMenu);
+        connect(mConnectInfoAction,SIGNAL(triggered()),this,SLOT(on_ShowNetInfo()));
 
         mRestartServiceAction = new QAction(tr("重启服务"),mMenu);
         connect(mRestartServiceAction,SIGNAL(triggered()),this,SLOT(on_restartServer()));
@@ -144,7 +145,7 @@ void ShareOnLan::sysTrayMenuInit(){
            //增加分隔符----------
         mMenu->addSeparator();
            //新增菜单项---关闭连接
-        mMenu->addAction(mClearConnectionAction);
+        mMenu->addAction(mConnectInfoAction);
            //新增菜单项---重启服务
         mMenu->addAction(mRestartServiceAction);
            //新增菜单项---显示主界面
@@ -207,14 +208,13 @@ void ShareOnLan::clientChange(){
 }
 
 void ShareOnLan::sysTrayTextChange(){
-    QString ipports="";
-    foreach (QString ip, ipList) {
-        ipports.append("\n").append("IP:").append(ip).append("  端口:").append(QString::number(server->listeningPort));
+    QString content="";
+    for(int i=0;i<ipList.size();i++) {
+        content.append("\n").append("IP:").append(ipList.at(i)).append(" (").append(networkcardList.at(i)).append(")");
     }
+    tray_tooltip = tr("「ShareOnLan」正在运行").append("\n连接状态:").append(server->getConnection()).append(content).append("\n端口:").append(QString::number(server->listeningPort));
     //当鼠标移动到托盘上的图标时，会显示此处设置的内容
-    mSysTrayIcon->setToolTip(tr("「ShareOnLan」正在运行")+
-                             ipports+
-                             tr("\n连接状态：")+QString(server->getConnection()));
+    mSysTrayIcon->setToolTip(tray_tooltip);
 }
 
 
@@ -240,9 +240,13 @@ void ShareOnLan::on_showMainAction(){
     this->move(QApplication::desktop()->availableGeometry().width()-rect().width()/2,QApplication::desktop()->availableGeometry().height()-rect().height()/2);
 }
 
+//显示本机IP等信息
+void ShareOnLan::on_ShowNetInfo(){
+    QMessageBox::about(nullptr,"连接信息",tray_tooltip);
+}
 
 //断开所有连接,清空文件接收队列
-void ShareOnLan::on_clearConnection(){
+void ShareOnLan::clearConnection(){
     server->closeSocket();
     fileserver->closeSocket();
     //清空文件接收队列
@@ -252,7 +256,7 @@ void ShareOnLan::on_clearConnection(){
 
 //重启server：重新监听端口并resume连接并重新检测网络信息
 void ShareOnLan::on_restartServer(){
-    on_clearConnection();
+    clearConnection();
     server->getLanBrocastAddress();
     server->serverShutDown();
     fileserver->serverShutDown();
@@ -264,7 +268,7 @@ void ShareOnLan::on_restartServer(){
 }
 
 void ShareOnLan::slot_checkBox_autoLaunch(bool flag){
-    conf->setConfig("ifautoStartup",flag?"true":"false");
+    conf->setConfig("automaticStartup",flag?"true":"false");
     conf->setAutomaticStartup(flag);
 }
 

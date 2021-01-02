@@ -11,6 +11,8 @@
 #include<QDesktopServices>
 #include<QTime>
 #include<QUrl>
+#include<QtMath>
+#include<QPainter>
 
 #include<config.h>
 #include<msgserver.h>
@@ -19,7 +21,8 @@
 #include<QLocalSocket>
 #include<QLocalServer>
 #include<QTextStream>
-
+#include<QGraphicsDropShadowEffect>
+#include<QPixmap>
 
 
 namespace Ui {
@@ -45,7 +48,7 @@ public slots:
     void on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason);
     void on_SendToPhone();
     void on_SendFile();
-    void on_clearConnection();
+    void on_ShowNetInfo();
     void on_restartServer();
     void on_showMainAction();
 
@@ -72,7 +75,7 @@ private:
     QMenu *mMenu;
     QAction *mSendToPhoneAction;
     QAction *mSendFile;
-    QAction *mClearConnectionAction;
+    QAction *mConnectInfoAction;
     QAction *mRestartServiceAction;
     QAction *mShowMainAction;
     QAction *mExitAppAction;
@@ -92,12 +95,13 @@ public:
     void sysTrayIconInit();
     void sysTrayMenuInit();
     void varInit();
+    void clearConnection();
     void sysTrayTextChange();
 
 
     bool detectSingleInstance();
 private:
-
+    QString tray_tooltip;
 
 private slots:
     void newLocalSocketConnection();

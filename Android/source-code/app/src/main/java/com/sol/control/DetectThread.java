@@ -21,7 +21,7 @@ public class DetectThread extends Thread{
         while (detectFlag) {
          //   System.out.println("检测连接状态:"+tcpConnectionChannel.establishFlag);
             if(!tcpConnectionChannel.establishFlag) {
-                System.out.println("尝试自动连接");
+                System.out.println("尝试自动连接至 "+MainActivity.serverIp+":"+MainActivity.serverPort);
                 if(ifFirstLoop){
                       Looper.prepare(); ifFirstLoop = false;
                 }

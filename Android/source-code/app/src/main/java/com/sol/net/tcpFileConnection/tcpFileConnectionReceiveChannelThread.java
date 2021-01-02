@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import static com.sol.MainActivity.nextFileFlag;
 import static com.sol.net.ConnectionInfo.receiveFileInfo;
 
 public class tcpFileConnectionReceiveChannelThread extends tcpFileConnectionChannel{
@@ -59,6 +60,7 @@ public class tcpFileConnectionReceiveChannelThread extends tcpFileConnectionChan
               }
               finally {
                   new Thread(MainActivity.listViewRunnable).start();
+                  nextFileFlag = true;
               }
         }
 

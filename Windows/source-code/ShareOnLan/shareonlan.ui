@@ -154,13 +154,13 @@
      <string>×</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="right_top_icon_label">
     <property name="geometry">
      <rect>
       <x>5</x>
       <y>0</y>
-      <width>111</width>
-      <height>31</height>
+      <width>32</width>
+      <height>32</height>
      </rect>
     </property>
     <property name="font">
@@ -171,7 +171,7 @@
      </font>
     </property>
     <property name="text">
-     <string>shareonlan</string>
+     <string/>
     </property>
    </widget>
    <widget class="QLabel" name="label_secret">
@@ -246,6 +246,26 @@
      <string>open</string>
     </property>
    </widget>
+   <widget class="QLabel" name="right_top_icon_label_2">
+    <property name="geometry">
+     <rect>
+      <x>45</x>
+      <y>0</y>
+      <width>131</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Share On Lan</string>
+    </property>
+   </widget>
    <zorder>label_bg</zorder>
    <zorder>lineEdit_port</zorder>
    <zorder>label_port</zorder>
@@ -255,13 +275,14 @@
    <zorder>checkBox_ifhidewhenlaunch</zorder>
    <zorder>minimalButton</zorder>
    <zorder>closeButton</zorder>
-   <zorder>label</zorder>
+   <zorder>right_top_icon_label</zorder>
    <zorder>label_secret</zorder>
    <zorder>lineEdit_secret</zorder>
    <zorder>label_fileReceiveLocation</zorder>
    <zorder>lineEdit_fileReceiveLocation</zorder>
    <zorder>pushButton_changeFileReceiveLocation</zorder>
    <zorder>pushButton_openFileLocationFolder</zorder>
+   <zorder>right_top_icon_label_2</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

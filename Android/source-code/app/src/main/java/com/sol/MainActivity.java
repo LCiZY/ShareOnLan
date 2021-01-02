@@ -232,8 +232,11 @@ public class MainActivity extends AppCompatActivity {
     public void onSendBtnClicked(View view){
 
         if(!tcpConnectionChannel.establishFlag){
-            toastOnUI("连接失败，检查IP、端口号或重试");
-            return;
+            ConnectionInit();
+            if(!tcpConnectionChannel.establishFlag) {
+                toastOnUI("连接失败，检查IP、端口号或重试");
+                return;
+            }
         }
 
         sendMessage(getSystemInfo.getClipboardContent(this));
@@ -261,11 +264,7 @@ public class MainActivity extends AppCompatActivity {
 
     private  boolean ifEditBoxIpPortValidate(){
         if(instance==null) return false;
-        //从输入框得到IP和端口
-        serverIp = instance.edit_ip.getText().toString(); try{ serverPort = Integer.parseInt(instance.edit_port.getText().toString());}catch (Exception e){serverPort=0;}
-        //如果没填ip，则把可能对的ip填上去
-        if(serverIp==null||"".contentEquals(serverIp)) {serverIp = ConnectionInfo.PC_IP;instance.edit_ip.setText(serverIp==null?"":serverIp);}
-        //检查IP和端口号
+       //检查IP和端口号
         if(!CheckArgumentUtil.checkIfIpValidate(serverIp) ||serverPort<1025||serverPort>65533)
         {toastOnUI("请输入正确的IP地址和端口号。");return false;}
         return true;
@@ -602,6 +601,8 @@ public class MainActivity extends AppCompatActivity {
         //编辑框文字以及checkbox是否勾选
         edit_ip.setText(Config.getConfiguration("serverIp"));
         edit_port.setText(Config.getConfiguration("serverPort"));
+        serverIp = Config.getConfiguration("serverIp");
+        try{serverPort = Integer.parseInt(Config.getConfiguration("serverPort")) ;}catch (NumberFormatException e){serverPort = 12306;edit_port.setText("12306");  }
 
         checkBox_ifEnableAutoSend.setChecked(Config.getConfiguration("enableAutoSend").contentEquals("true"));ifClipChangedSend = checkBox_ifEnableAutoSend.isChecked();
         if(this.checkBox_ifEnableAutoSend.isChecked()) enableAutoSend(this.checkBox_ifEnableAutoSend);
@@ -731,7 +732,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         view = getLayoutInflater().inflate(R.layout.popup_menu_window, null);
-
 
         alertDialog = new AlertDialog.Builder(MainActivity.instance)
                 .setTitle("剪贴板历史记录")
@@ -945,13 +945,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static boolean fileTransferProgressExitFlag = false;
+    public static boolean nextFileFlag=false;
     class FileProgressDialogThread extends Thread {
 
         String[] filePaths;
         boolean isSend;
 
-        boolean nextFileFlag=false;
-        
+
         public FileProgressDialogThread(String[] filePaths) {
             this.filePaths = filePaths; this.isSend = isSend;
         }
@@ -964,6 +964,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             fileTransferProgressExitFlag = false;
+            System.out.println("显示文件传输对话框");
             for (int i = 0; i < filePaths.length; i++){
                 final String title = filePaths[i].substring(filePaths[i].lastIndexOf(File.separator)+1);
                     //1.创建传输进度对话框
@@ -973,6 +974,7 @@ public class MainActivity extends AppCompatActivity {
                             fileTransferProgressDialog.setTitle(title);
                             file_progress_animation.reset();
                             fileTransferProgressDialog.show();
+                            fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("取消发送");
                             file_progress_animation.startAnimating();
                         }
                     });
@@ -996,6 +998,8 @@ public class MainActivity extends AppCompatActivity {
                     } finally {
                         //如果传输过程中连接断开，或传输取消，则清除发送文件队列，并退出此方法
                         if (!tcpConnectionChannel.establishFlag  || fileTransferProgressExitFlag) {
+                            System.out.println("!tcpConnectionChannel.establishFlag:"+!tcpConnectionChannel.establishFlag);
+                            System.out.println("fileTransferProgressExitFlag:"+fileTransferProgressExitFlag);
                             fileTransferProgressDialog.dismiss();
                             return;
                         }
@@ -1006,6 +1010,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("完成");
                         file_progress_animation.setProgress(100);
                         tcpFileConnectionChannel.progress = 0.0f;
                     }
@@ -1033,7 +1038,13 @@ public class MainActivity extends AppCompatActivity {
         public void afterTextChanged(Editable s) {
             if(MainActivity.instance!=null){
                if(!"".contentEquals(MainActivity.instance.edit_port.getText().toString())&&!"".contentEquals(MainActivity.instance.edit_ip.getText().toString()))
-               MainActivity.instance.saveConfig();
+               {
+                   //从输入框得到IP和端口
+                   serverIp = instance.edit_ip.getText().toString();
+                   try{ serverPort = Integer.parseInt(instance.edit_port.getText().toString());}catch (Exception e){serverPort=0;}
+                   //保存至文件
+                   MainActivity.instance.saveConfig();
+               }
             }
         }
     }
@@ -1050,6 +1061,7 @@ public class MainActivity extends AppCompatActivity {
                 onReceiveFileClick((String)parent.getItemAtPosition(position));
             }
     }
+
 
     //每次打开页面检测剪贴板有无变化的检测线程
     public static String preClipBoardText = "";

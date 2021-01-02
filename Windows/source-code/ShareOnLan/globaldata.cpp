@@ -4,6 +4,7 @@
 QQueue<QString> receiveFilesNameQueue = QQueue<QString>();
 QQueue<QString> receiveFilesSizeQueue = QQueue<QString>();
 QStringList ipList = QStringList();
+QStringList networkcardList = QStringList();
 QString secret="null";
 config *conf = new config();
 const int FILESENDBUFFERSIZE = 5120000;
@@ -25,6 +26,14 @@ QString getFileInfo(QString filePath){
         Log(QString("发送文件信息：")+result);
     return result;
 
+}
+
+QString formatIPSpace(QString ip){
+    QString spaces = "";
+    for(int i=0;i<15-ip.size();i++){
+        spaces.append("  ");
+    }
+    return spaces;
 }
 
 

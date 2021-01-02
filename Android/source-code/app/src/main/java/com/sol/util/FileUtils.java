@@ -171,9 +171,9 @@ public class FileUtils {
             return type;
         }
 
-        for (int i = 0; i < MIME_MapTable.length; i++) {
-            if (end.equals(MIME_MapTable[i][0])) {
-                type = MIME_MapTable[i][1];
+        for (String[] strings : MIME_MapTable) {
+            if (end.equals(strings[0])) {
+                type = strings[1];
             }
         }
         return type;
@@ -197,7 +197,6 @@ public class FileUtils {
             {".3gpp", "video/3gpp"},
             {".aac", "audio/x-mpeg"},
             {".amr", "audio/x-mpeg"},
-            {".apk", "application/vnd.android.package-archive"},
             {".avi", "video/x-msvideo"},
             {".aab", "application/x-authoware-bin"},
             {".aam", "application/x-authoware-map"},
@@ -209,6 +208,7 @@ public class FileUtils {
             {".als", "audio/x-alpha5"},
             {".amc", "application/x-mpeg"},
             {".ani", "application/octet-stream"},
+            {".apk", "application/vnd.android.package-archive"},
             {".asc", "text/plain"},
             {".asd", "application/astound"},
             {".asf", "video/x-ms-asf"},
@@ -248,6 +248,7 @@ public class FileUtils {
             {".css", "text/css"},
             {".cur", "application/octet-stream"},
             {".doc", "application/msword"},
+            {".docx", "application/msword"},
             {".dcm", "x-lml/x-evm"},
             {".dcr", "application/x-director"},
             {".dcx", "image/x-dcx"},
@@ -292,7 +293,6 @@ public class FileUtils {
             {".gz", "application/x-gzip"},
             {".gif", "image/gif"},
             {".gtar", "application/x-gtar"},
-            {".gz", "application/x-gzip"},
             {".h", "text/plain"},
             {".hdf", "application/x-hdf"},
             {".hdm", "text/x-hdml"},
@@ -611,6 +611,7 @@ public class FileUtils {
             {".xll", "application/x-excel"},
             {".xlm", "application/vnd.ms-excel"},
             {".xls", "application/vnd.ms-excel"},
+            {".xlsx", "application/vnd.ms-excel"},
             {".xlt", "application/vnd.ms-excel"},
             {".xlw", "application/vnd.ms-excel"},
             {".xm", "audio/x-mod"},
@@ -627,6 +628,7 @@ public class FileUtils {
             {".z", "application/x-compress"},
             {".zac", "application/x-zaurus-zac"},
             {".zip", "application/zip"},
+            {".7z", "application/zip"},
             {"", "*/*"}
     };
 

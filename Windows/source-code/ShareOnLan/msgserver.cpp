@@ -124,13 +124,12 @@ bool msgServer::ifConnected(){
 }
 
 QString msgServer::getConnection(){
-    return ifConnected()?("Connect With "+getIPv4(this->socket->peerAddress().toIPv4Address())):"No Connection";
+    return ifConnected()?("连接至"+getIPv4(this->socket->peerAddress().toIPv4Address())):"无连接";
 }
 
 int errorTimes = 0;
-int timeEventPlayTimes = 0;
 void msgServer::timerEvent(QTimerEvent *){
-    //每8秒自动回复: R\n
+    //如果已经连接，则heartbeat：每8秒自动回复: R\n
     if(this->socket!=nullptr){
       //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
         if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0;} Log("检测到连接异常-1，自动断开"); }
@@ -138,15 +137,17 @@ void msgServer::timerEvent(QTimerEvent *){
         this->socket->waitForBytesWritten();
         msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear(); Log("检测到连接异常-2，自动断开"); }
     }else if(ipList.size()!=0){
-        if(timeEventPlayTimes==ipList.size()){ timeEventPlayTimes=0; }
-        netInfoStr = ipList.at(timeEventPlayTimes%ipList.size())+tr(" ")+conf->getConfig("port")+tr(" "); timeEventPlayTimes++;
-        QHostAddress host  = QHostAddress(netInfo[1]);
-        QString info = encrypt(netInfoStr+conf->getConfig("secret"));
-        std::string strTemp= info.toStdString();
-        const char* temp = strTemp.c_str();
-        qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"  加密后："<<temp;
-        this->udpSocket->writeDatagram(temp,strlen(temp),host,56789);
-        this->udpSocket->waitForBytesWritten();
+        //如果还没连接：发送ip、端口号、连接密钥的信息
+        for(int i=0;i<ipList.size();i++){
+            netInfoStr = ipList.at(i)+tr(" ")+conf->getConfig("port")+tr(" ");
+            QHostAddress host  = QHostAddress(netInfo[1]);
+            QString info = encrypt(netInfoStr+conf->getConfig("secret"));
+            std::string strTemp= info.toStdString();
+            const char* temp = strTemp.c_str();
+            qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"  加密后："<<temp;
+            this->udpSocket->writeDatagram(temp,strlen(temp),host,56789);
+            this->udpSocket->waitForBytesWritten();
+        }
     }
 }
 
@@ -185,7 +186,7 @@ QString msgServer::getIPv4(qint32 ip){
 }
 
 void  msgServer::getLanBrocastAddress(){
-    ipList.clear();
+    ipList.clear(); networkcardList.clear();
     QList<QNetworkInterface> interfaceList = QNetworkInterface::allInterfaces();
      for (int i = 0; i < interfaceList.count(); i++)
      {
@@ -218,8 +219,8 @@ void  msgServer::getLanBrocastAddress(){
              QString bcast = entry.broadcast().toString();          //广播地址
              if(bcast.compare("")==0) continue;
                 netInfo[0]=ip; netInfo[1]=bcast;
-             ipList.append(ip);
-          //   qDebug()<<"ip:"<<ip<<"   掩码："<<mask<<"   广播地址:"<<bcast;
+             ipList.append(ip); networkcardList.append(networkCardName);
+
              Log(tr("ip：")+ip+tr("  掩码：")+mask+"  广播地址："+bcast);
 
          }
