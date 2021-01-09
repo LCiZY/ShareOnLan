@@ -1,5 +1,9 @@
 package com.sol.net.UdpConnection;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
 import com.sol.config.Config;
 import com.sol.net.tcpConnectionChannel;
 import com.sol.util.CheckArgumentUtil;
@@ -47,7 +51,10 @@ public class udpServer extends Thread{
                     //再将数据报包转换成字节数组
                     byte[] data = dp.getData();
                     //通过使用平台的默认字符集解码data字节数组,方便打印输入
-                    String str = new String(data, StandardCharsets.US_ASCII);
+                    String str = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                        str = new String(data, StandardCharsets.US_ASCII);
+                    }else str = new String(data);
 
                     if(str==null) continue;
                     for(int i=str.length()-1;i>=0;i--){
