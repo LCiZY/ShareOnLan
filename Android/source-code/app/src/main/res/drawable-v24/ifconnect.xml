@@ -1,0 +1,12 @@
+<level-list xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:drawable="@drawable/disconnect"
+        android:maxLevel="0"/>
+
+    <item
+        android:drawable="@drawable/correct"
+        android:maxLevel="1"/>
+
+
+</level-list>
