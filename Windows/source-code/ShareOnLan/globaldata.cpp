@@ -4,7 +4,9 @@
 QQueue<QString> receiveFilesNameQueue = QQueue<QString>();
 QQueue<QString> receiveFilesSizeQueue = QQueue<QString>();
 QStringList ipList = QStringList();
+QStringList brocastList = QStringList();
 QStringList networkcardList = QStringList();
+QStringList ipList_Curr = QStringList();
 QString secret="null";
 config *conf = new config();
 const int FILESENDBUFFERSIZE = 5120000;

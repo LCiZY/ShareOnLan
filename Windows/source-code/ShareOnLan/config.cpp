@@ -21,6 +21,8 @@ config::config(QObject *parent):
 
     //读取默认配置到defaultConfiguration()
     readDefaultConfigFromDefaultConfigFile();
+
+    //判断配置文件是否存在
     QFile confFile(configFilePath);
     if(!confFile.exists()){
         //配置文件不存在，使用默认配置
@@ -32,6 +34,17 @@ config::config(QObject *parent):
          //如果读取配置出错，那么使用默认配置，否则使用配置文件的配置
          if(!readConfigFromConfigFile()) enAbleDefaultConfig();
     }
+
+    //判断日志文件是否存在
+    QFile logFile(logFilePath);
+    if(!logFile.exists()){
+        if(logFile.open(QIODevice::WriteOnly)){
+            QTextStream out(&logFile); out.setCodec("UTF-8");
+            out << QString("#日志\n");
+            logFile.close();
+        }
+    }
+
     //check配置
     //如果端口无效
     if(!isPortValid()) {configurations["port"] = defaultConfigurations["port"]; setConfig("port",defaultConfigurations["port"]); }
@@ -62,13 +75,6 @@ void config::configInit(){
     //将不在配置文件中的默认配置（动态获取的默认配置保存至配置文件中）
     setConfig("fileReceiveLocation",defaultConfigurations["fileReceiveLocation"]);
 
-    QFile logFile(logFilePath);
-    if(logFile.open(QIODevice::WriteOnly)){
-        QTextStream out(&logFile); out.setCodec("UTF-8");
-        out << "\n";
-        logFile.close();
-    }
-
 }
 
 QString config::getConfig(QString configName){
@@ -89,7 +95,7 @@ bool config::readConfigFromConfigFile(){
 
     QFile configFile(configFilePath);
     if(configFile.open(QIODevice::ReadOnly)){
-        char buf[128];
+        char buf[1024];
          qint64 lineLength = 0;
         while (lineLength!=-1) {
             lineLength = configFile.readLine(buf, sizeof(buf));
@@ -233,6 +239,7 @@ void config::setAutomaticStartup(bool isStart)
      }
      else
          settings->remove(strApplicationName);//移除注册表
+     settings->deleteLater();
 }
 
 

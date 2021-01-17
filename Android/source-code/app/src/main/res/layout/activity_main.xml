@@ -204,17 +204,34 @@ android:fillViewport="true">
                                 android:gravity="center"
                                 android:id="@+id/page1"
                                 >
-
-                                    <!--发送按钮-->
-                                    <Button
+                                    <LinearLayout
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:id="@+id/sendBtn"
-                                        android:text="     发送     "
-                                        android:onClick="onSendBtnClicked"
-                                        android:textColor="@color/colorWhite"
-                                        android:background="@drawable/shape"
-                                        />
+                                        android:orientation="horizontal"
+                                        android:gravity="center">
+                                        <!--发送按钮-->
+                                        <Button
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:id="@+id/sendBtn"
+                                            android:text="   发送文本   "
+                                            android:onClick="onSendBtnClicked"
+                                            android:textColor="@color/colorWhite"
+                                            android:background="@drawable/shape"
+                                            />
+                                        <Button
+                                            android:layout_marginLeft="10dp"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:id="@+id/sendFileBtn"
+                                            android:text="   发送文件   "
+                                            android:onClick="onSendFileBtnClicked"
+                                            android:textColor="@color/colorWhite"
+                                            android:background="@drawable/shape"
+                                            android:layout_marginStart="10dp" />
+
+                                    </LinearLayout>
+
 
                                     <CheckBox
                                         android:layout_width="wrap_content"

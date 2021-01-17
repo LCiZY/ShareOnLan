@@ -165,11 +165,10 @@ void FileSocket::sendFile(QString userChooseFileName){
         this->write(buf,length);
         count+=length;
         this->waitForBytesWritten();
-        qDebug()<<"读取\\发送："<<count;
     }
     delete buf;
 
-    Log("文件发送完成");
+    Log("文件发送完成，发送大小："+ QString::number(count));
     sendfile.close();
     this->close();
 
@@ -196,10 +195,10 @@ void FileSocket::receiveFile(){
     QFile receivefile(userChooseFileName);
     if(receiveSize==0){
         Log(tr("开始接收文件,文件大小:%1 文件名:%2").arg(receiveFilesSizeQueue.head()).arg(receiveFilesNameQueue.head()));
+        emit currFileInfo(receiveFilesSizeQueue.head().toInt(),receiveFilesNameQueue.head());
     }
 
-        if(receiveSize==0) emit currFileInfo(receiveFilesSizeQueue.head().toInt(),receiveFilesNameQueue.head());
-        if(receivefile.open(receiveSize==0?QIODevice::WriteOnly:QIODevice::Append)){
+    if(receivefile.open(receiveSize==0?QIODevice::WriteOnly:QIODevice::Append)){
 
             char *buf=new char[FILEBUFFERSIZE];
             qint64 length=1;
@@ -220,10 +219,10 @@ void FileSocket::receiveFile(){
             receivefile.close();
 
             return;
-        }
+     }
 
     //接收失败
-    Log(tr("接收失败"));
+    Log(tr("接收失败:文件打开失败"));
 
 }
 

@@ -16,7 +16,9 @@
 extern QQueue<QString> receiveFilesNameQueue;
 extern QQueue<QString> receiveFilesSizeQueue;
 extern QStringList ipList;
+extern QStringList brocastList;
 extern QStringList networkcardList;
+extern QStringList ipList_Curr;
 extern QString secret;
 extern config *conf;
 extern const int FILESENDBUFFERSIZE;

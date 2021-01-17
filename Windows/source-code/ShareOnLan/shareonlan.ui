@@ -219,31 +219,65 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
    </widget>
    <widget class="QPushButton" name="pushButton_changeFileReceiveLocation">
     <property name="geometry">
      <rect>
-      <x>270</x>
+      <x>280</x>
       <y>172</y>
       <width>21</width>
       <height>21</height>
      </rect>
     </property>
+    <property name="minimumSize">
+     <size>
+      <width>21</width>
+      <height>21</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>21</width>
+      <height>21</height>
+     </size>
+    </property>
     <property name="text">
-     <string>...</string>
+     <string/>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_openFileLocationFolder">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>320</x>
       <y>172</y>
-      <width>51</width>
+      <width>21</width>
       <height>21</height>
      </rect>
     </property>
+    <property name="minimumSize">
+     <size>
+      <width>21</width>
+      <height>21</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>21</width>
+      <height>21</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>open</string>
+     <string/>
     </property>
    </widget>
    <widget class="QLabel" name="right_top_icon_label_2">
@@ -257,7 +291,8 @@
     </property>
     <property name="font">
      <font>
-      <family>微软雅黑</family>
+      <family>Verdana</family>
+      <pointsize>11</pointsize>
       <weight>50</weight>
       <bold>false</bold>
      </font>

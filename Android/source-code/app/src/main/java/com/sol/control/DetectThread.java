@@ -28,7 +28,7 @@ public class DetectThread extends Thread{
 
                 if(MainActivity.instance==null) {DetectThread.detectFlag = false;System.out.println("-----------------------------MainActivity.instance为null！！！");}
                 MainActivity.instance.ConnectionInit();
-                if(tcpConnectionChannel.establishFlag) new Thread(uiRun).start(); //连接成功，更新界面
+//                if(tcpConnectionChannel.establishFlag) new Thread(uiRun).start(); //连接成功，更新界面
 
             }
 

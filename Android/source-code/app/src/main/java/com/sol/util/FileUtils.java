@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.util.Log;
 
@@ -115,7 +114,6 @@ public class FileUtils {
                 grantUriPermission(context,fileUri,intent);
                 //跳转
                 context.startActivity(intent);
-                // Intent.createChooser(intent, "请选择对应的软件打开该附件！");
             }
         }catch (Exception e){
             if(MainActivity.instance!=null)
@@ -148,7 +146,6 @@ public class FileUtils {
         grantUriPermission(context,fileUri,intent);
         try {
             context.startActivity(intent);
-//            startActivity(Intent.createChooser(intent,"选择浏览工具"));
         } catch (ActivityNotFoundException e) {
             e.printStackTrace();
         }
@@ -433,6 +430,7 @@ public class FileUtils {
             {".ppm", "image/x-portable-pixmap"},
             {".pps", "application/vnd.ms-powerpoint"},
             {".ppt", "application/vnd.ms-powerpoint"},
+            {".pptx", "application/vnd.ms-powerpoint"},
             {".pqf", "application/x-cprplayer"},
             {".pqi", "application/cprplayer"},
             {".prc", "application/x-prc"},

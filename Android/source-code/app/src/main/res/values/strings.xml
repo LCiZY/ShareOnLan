@@ -4,4 +4,12 @@
     <string name="ifConnect">未连接</string>
 
     <string name="fileStoreIn">接收到的文件，储存位置:</string>
+
+    <string name="way1">方式一：在已连接状态下，将其他应用内的文件通过本应用发送至电脑(此处以微信为例)</string>
+    <string name="way1step1">步骤一：点击右上角按钮</string>
+    <string name="way1step2">步骤二：选择用其他应用打开</string>
+    <string name="way1step3">步骤三：选择本应用</string>
+    <string name="way2">方式二：在已连接状态下，使用系统的分享功能通过本应用发送至电脑(此处以相册为例)</string>
+    <string name="way2step1">步骤一：点击分享按钮</string>
+    <string name="way2step2">步骤二：选择本应用</string>
 </resources>

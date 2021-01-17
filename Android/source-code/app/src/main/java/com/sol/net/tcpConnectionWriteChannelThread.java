@@ -13,7 +13,9 @@ public class tcpConnectionWriteChannelThread extends tcpConnectionChannel {
     }
 
     public void send(String msg){
-        out.print(msg);
+        synchronized (tcpConnectionWriteChannelThread.class) {
+            this.setMsg(msg); this.interrupt();
+        }
     }
 
     @Override
@@ -25,24 +27,23 @@ public class tcpConnectionWriteChannelThread extends tcpConnectionChannel {
                 Thread.sleep(Integer.MAX_VALUE);
             } catch (InterruptedException e) {if(!w_runFlag) break; }
 
-            if(!w_runFlag) break;
+            synchronized (tcpConnectionWriteChannelThread.class) {
+                if (!w_runFlag) break;
+                //发送数据到服务端,如果当前剪贴板数据为空，则发送“R”，否则根据服务器代码来看，会断开连接
+                out.print(this.msg.length() == 0 ? ConnectionInfo.RESPONSE : this.msg); out.flush();
+                if (!this.msg.contentEquals("R\n")) {
+                    //记录到剪贴板历史
+                    System.out.println("----------------发送文本：" + this.msg);
+                    try {
+                        if (ConnectionInfo.clipDatas.isEmpty() || !this.msg.contentEquals(ConnectionInfo.clipDatas.getFirst())) {
+                            ConnectionInfo.clipDatas.addFirst(this.msg);
+                            handler.sendEmptyMessageDelayed(100, 0);
+                        }
+                    } catch (Exception e) {}
+                }
 
-            //发送数据到服务端,如果当前剪贴板数据为空，则发送“R”，否则根据服务器代码来看，会断开连接
-
-            out.print(this.msg.length() == 0 ? ConnectionInfo.RESPONSE : this.msg);
-            if(!this.msg.contentEquals("R\n")) {
-                //记录到剪贴板历史
-                System.out.println("----------------发送文本：" + this.msg);
-                try {
-                    if (ConnectionInfo.clipDatas.isEmpty()||!this.msg.contentEquals(ConnectionInfo.clipDatas.getFirst())){
-                        ConnectionInfo.clipDatas.addFirst(this.msg);
-                        handler.sendEmptyMessageDelayed(100,0);
-                    }
-                } catch (Exception e) { }
+                this.setMsg("");
             }
-
-            this.setMsg("");
-
 
         }
 

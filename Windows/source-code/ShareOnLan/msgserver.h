@@ -50,6 +50,7 @@ public slots:
 
 signals:
     void clientChange();
+    void ipChange();
 
 protected:
     void incomingConnection(int descriptor);
@@ -62,14 +63,15 @@ private:
     QStringList msgList;
     QString lastMsg;
     QString msg;
-    QString netInfo[2];
     QString netInfoStr;
 
 
     int checkClientAliveTimerID;
+    int checkIPClientTimerID;
 
     QString encrypt(QString);
     QString getIPv4(qint32 ip);
+    void getLanBrocastAddress_1();
 
 
 

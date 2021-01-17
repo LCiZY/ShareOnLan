@@ -35,7 +35,7 @@ public class tcpFileConnectionSendChannelThread extends tcpFileConnectionChannel
                 progress = (1.0f*sum/(int)file.length())*100;
             }
             System.out.println("传输完成，发送字节数："+sum);
-            ConnectionInfo.ifSended = true;
+            ConnectionInfo.ifSended = true;  //发送完成，复位
         }catch (Exception e){
             e.printStackTrace();
             System.out.println("!!文件传输失败!!");

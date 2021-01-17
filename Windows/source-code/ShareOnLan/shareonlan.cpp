@@ -7,6 +7,7 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     ui(new Ui::ShareOnLan)
 {
     ui->setupUi(this);
+    Log("程序开始运行");
 
     this->setWindowTitle(tr("ShareOnLan"));
     this->setWindowIcon(QIcon(":/icon/transfer_64.png"));
@@ -25,6 +26,7 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     varInit();
 
     connect(server,SIGNAL(clientChange()),this,SLOT(clientChange()));
+    connect(server,SIGNAL(ipChange()),this,SLOT(sysTrayTextChange()));
     connect(fileserver,SIGNAL(newFileConnection()),this,SLOT(showProgressUI()));
     connect(fileserver,SIGNAL(fileTransferDone()),this,SLOT(progressUIDestroy()));
     connect(fileserver,SIGNAL(currFileInfo(int,QString)),this,SLOT(setProgressInfo(int,QString)));
@@ -41,6 +43,7 @@ ShareOnLan::~ShareOnLan()
     fileserver->deleteLater();
     delete ui;
     Log("析构调用完成");
+    Log("程序结束运行");
 }
 
 void ShareOnLan::windowInit(){
@@ -48,13 +51,13 @@ void ShareOnLan::windowInit(){
     ui->right_top_icon_label->setPixmap(QPixmap(":/icon/transfer_3d.png"));
     ui->lineEdit_port->setText(conf->getConfig("port"));valid_port=new QIntValidator(this); valid_port->setRange(1025,65533);ui->lineEdit_port->setValidator(valid_port); ui->lineEdit_port->setToolTip("端口号范围：1025 - 65534");
     ui->checkBox_ifhidewhenlaunch->setChecked(conf->getConfig("ifhidewhenlaunch").compare("true")==0);
-    ui->checkBox_ifautostartup->setChecked(conf->getConfig("automaticStartup").compare("true")==0);
+    ui->checkBox_ifautostartup->setChecked(conf->getConfig("automaticStartup").compare("true")==0); conf->setAutomaticStartup(ui->checkBox_ifautostartup->isChecked());
     ui->lineEdit_secret->setText(conf->getConfig("secret")); ui->lineEdit_secret->setToolTip("输入手机APP上的密钥");
     ui->lineEdit_fileReceiveLocation->setText(conf->getConfig("fileReceiveLocation"));
     ui->lineEdit_fileReceiveLocation->setToolTip(ui->lineEdit_fileReceiveLocation->text());
     ui->lineEdit_fileReceiveLocation->setEnabled(false);
-    ui->pushButton_changeFileReceiveLocation->setToolTip("更改文件保存位置");
-    ui->pushButton_openFileLocationFolder->setToolTip("打开保存文件的文件夹");
+    ui->pushButton_changeFileReceiveLocation->setToolTip("更改文件保存位置"); ui->pushButton_changeFileReceiveLocation->setIcon(QIcon(":/images/button_edit_location.png")); ui->pushButton_changeFileReceiveLocation->setIconSize(QSize(21,21));
+    ui->pushButton_openFileLocationFolder->setToolTip("打开保存文件的文件夹");ui->pushButton_openFileLocationFolder->setIcon(QIcon(":/images/button_directory.png")); ui->pushButton_openFileLocationFolder->setIconSize(QSize(21,21));
 
     QFile styleFile(":/style/style.qss");if(styleFile.open(QIODevice::ReadOnly)){QString style=styleFile.readAll(); this->setStyleSheet(style);}
 
@@ -95,6 +98,7 @@ void ShareOnLan::sysTrayIconInit(){
         mSysTrayIcon->setIcon(QIcon(":/icon/transfer.png"));
         //为托盘图标绑定槽函数
         connect(mSysTrayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)));
+
 }
 
 void ShareOnLan::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reason)
@@ -106,8 +110,19 @@ void ShareOnLan::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reaso
         this->showMaximized();
         this->move(QApplication::desktop()->availableGeometry().width()-rect().width()/2,QApplication::desktop()->availableGeometry().height()-rect().height()/2);
         break;
-    default:
+    case QSystemTrayIcon::Unknown:
+    case QSystemTrayIcon::Trigger:
+    case QSystemTrayIcon::MiddleClick:
         break;
+    case QSystemTrayIcon::Context:
+        //右击托盘图标
+        QPainterPath path;
+        QRectF rect = QRectF(0,0,mMenu->sizeHint().width(),mMenu->sizeHint().height());
+        path.addRoundedRect(rect,4,4);
+        QPolygon polygon= path.toFillPolygon().toPolygon();
+        QRegion region(polygon);    mMenu->setMask(region);
+        break;
+
     }
 }
 
@@ -115,21 +130,24 @@ void ShareOnLan::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reaso
 void ShareOnLan::sysTrayMenuInit(){
 
         mMenu = new QMenu(this);
+        // 设置圆角的前置设置
+//        mMenu->setWindowFlags(Qt::FramelessWindowHint);
+//        mMenu->setAttribute(Qt::WA_TranslucentBackground);
 
-        mSendToPhoneAction = new QAction(tr("发送文本"),mMenu);
+        mSendToPhoneAction = new QAction(QIcon(":/images/icon_message.png"),tr("发送文本"),mMenu);
         connect(mSendToPhoneAction,SIGNAL(triggered()),this,SLOT(on_SendToPhone()));
 
-        mSendFile = new QAction(tr("发送文件"),mMenu);
+        mSendFile = new QAction(QIcon(":/images/icon_file.png"),tr("发送文件"),mMenu);
         connect(mSendFile,SIGNAL(triggered()),this,SLOT(on_SendFile()));
 
-        mConnectInfoAction = new QAction(tr("本机IP"),mMenu);
+        mConnectInfoAction = new QAction(QIcon(":/images/icon_ip.png"),tr("本机IP"),mMenu);
         connect(mConnectInfoAction,SIGNAL(triggered()),this,SLOT(on_ShowNetInfo()));
 
-        mRestartServiceAction = new QAction(tr("重启服务"),mMenu);
+        mRestartServiceAction = new QAction(QIcon(":/images/icon_reboot.png"),tr("重启服务"),mMenu);
         connect(mRestartServiceAction,SIGNAL(triggered()),this,SLOT(on_restartServer()));
 
-        mShowMainAction = new QAction(tr("显示主界面"),mMenu);
-        connect(mShowMainAction,SIGNAL(triggered()),this,SLOT(on_showMainAction()));
+        mSettingAction = new QAction(QIcon(":/images/icon_setting.png"),tr("设置"),mMenu);
+        connect(mSettingAction,SIGNAL(triggered()),this,SLOT(on_showSettingAction()));
 
 
         mExitAppAction = new QAction(tr("退出"),mMenu);
@@ -149,7 +167,7 @@ void ShareOnLan::sysTrayMenuInit(){
            //新增菜单项---重启服务
         mMenu->addAction(mRestartServiceAction);
            //新增菜单项---显示主界面
-        mMenu->addAction(mShowMainAction);
+        mMenu->addAction(mSettingAction);
            //增加分隔符----------
         mMenu->addSeparator();
            //新增菜单项---退出程序
@@ -220,6 +238,7 @@ void ShareOnLan::sysTrayTextChange(){
 
 
 void ShareOnLan::on_SendToPhone(){
+    if(!this->server->ifConnected()) { QMessageBox::about(nullptr,"失败","未连接至手机");return;}
     //写入剪贴板
     QClipboard *board = QApplication::clipboard();
 
@@ -227,7 +246,7 @@ void ShareOnLan::on_SendToPhone(){
 }
 
 void ShareOnLan::on_SendFile(){
-    if(!this->server->ifConnected()) { QMessageBox::about(nullptr,"错误","连接失败");return;}
+    if(!this->server->ifConnected()) { QMessageBox::about(nullptr,"失败","未连接至手机");return;}
     this->fileserver->ifSend = true;
     //用户选择要发送的文件，可能会阻塞很久
     QString userChooseFileName = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
@@ -235,7 +254,7 @@ void ShareOnLan::on_SendFile(){
     this->fileserver->setSendFileName(userChooseFileName);
 }
 
-void ShareOnLan::on_showMainAction(){
+void ShareOnLan::on_showSettingAction(){
     this->showMaximized();
     this->move(QApplication::desktop()->availableGeometry().width()-rect().width()/2,QApplication::desktop()->availableGeometry().height()-rect().height()/2);
 }
@@ -281,7 +300,9 @@ void ShareOnLan::hideWindow(){
 }
 
 void ShareOnLan::on_exitAppAction(){
-    this->close();
+    this->server->close();
+    this->fileserver->close();
+    qApp->exit();
 }
 
 void  ShareOnLan::showProgressUI(){
@@ -365,17 +386,17 @@ void ShareOnLan::mousePressEvent(QMouseEvent *event){
 void ShareOnLan::mouseReleaseEvent(QMouseEvent *)
 {
     moveFlag=false;
-
 }
 
 //改写了关闭事件，先关闭服务器监听循环再接受关闭事件
 void ShareOnLan::closeEvent(QCloseEvent* event){
-
-     this->server->close();
-     this->fileserver->close();
-     qApp->exit();
-     event->accept();
-
+    /**以下四句为正常关闭的代码*/
+//     this->server->close();
+//     this->fileserver->close();
+//     qApp->exit();
+//     event->accept();
+       this->hide();
+       event->ignore();
 }
 
 

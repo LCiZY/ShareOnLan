@@ -34,12 +34,6 @@
         android:orientation="horizontal" 
         android:background="@drawable/bg_default_button_selector">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="20dip"
-            android:paddingRight="20dip"
-            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -61,12 +55,6 @@
         android:orientation="horizontal"
         android:background="@drawable/bg_default_button_selector" >
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="20dip"
-            android:paddingRight="20dip"
-            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -74,7 +62,7 @@
             android:textSize="15sp"
             android:paddingLeft="20dip"
             android:textColor="#595d5f"
-            android:text="清除文件" />
+            android:text="删除文件" />
     </LinearLayout>
 
 </LinearLayout>

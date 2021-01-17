@@ -10,6 +10,7 @@ msgServer::msgServer(QObject *, int port)
 
     getLanBrocastAddress();
     checkClientAliveTimerID = startTimer((timeOutValue-2)*1000);
+    checkIPClientTimerID = startTimer(4000);
 }
 
 msgServer::~msgServer(){
@@ -128,27 +129,50 @@ QString msgServer::getConnection(){
 }
 
 int errorTimes = 0;
-void msgServer::timerEvent(QTimerEvent *){
-    //如果已经连接，则heartbeat：每8秒自动回复: R\n
-    if(this->socket!=nullptr){
-      //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
-        if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0;} Log("检测到连接异常-1，自动断开"); }
-        this->socket->write(RESPONSE,strlen(RESPONSE));
-        this->socket->waitForBytesWritten();
-        msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear(); Log("检测到连接异常-2，自动断开"); }
-    }else if(ipList.size()!=0){
-        //如果还没连接：发送ip、端口号、连接密钥的信息
-        for(int i=0;i<ipList.size();i++){
-            netInfoStr = ipList.at(i)+tr(" ")+conf->getConfig("port")+tr(" ");
-            QHostAddress host  = QHostAddress(netInfo[1]);
-            QString info = encrypt(netInfoStr+conf->getConfig("secret"));
-            std::string strTemp= info.toStdString();
-            const char* temp = strTemp.c_str();
-            qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"  加密后："<<temp;
-            this->udpSocket->writeDatagram(temp,strlen(temp),host,56789);
-            this->udpSocket->waitForBytesWritten();
+void msgServer::timerEvent(QTimerEvent *e){
+
+    /**检查连接是否正常*/
+    if(checkClientAliveTimerID == e->timerId()){
+        //如果已经连接，则heartbeat：每 8 秒自动回复: R\n
+        if(this->socket!=nullptr){
+          //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
+            if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0;} Log("检测到连接异常-1，自动断开"); }
+            this->socket->write(RESPONSE,strlen(RESPONSE));
+            this->socket->waitForBytesWritten();
+            msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear(); Log("检测到连接异常-2，自动断开"); }
+        }else if(ipList.size()!=0){
+            //如果还没连接：发送ip、端口号、连接密钥的信息
+            for(int i=0;i<ipList.size();i++){
+                netInfoStr = ipList.at(i)+tr(" ")+conf->getConfig("port")+tr(" ");
+                QHostAddress host  = QHostAddress(brocastList.at(i));
+                QString info = encrypt(netInfoStr+conf->getConfig("secret"));
+                std::string strTemp= info.toStdString();
+                const char* temp = strTemp.c_str();
+                //qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"  加密后："<<temp;
+                this->udpSocket->writeDatagram(temp,strlen(temp),host,56789);
+                this->udpSocket->waitForBytesWritten();
+            }
         }
     }
+
+    /**检查网卡信息是否变化*/
+    if(checkIPClientTimerID == e->timerId()){
+        getLanBrocastAddress_1();
+        if(ipList_Curr.size()!=ipList.size()){/**发送信号使UI更新托盘信息*/ emit(ipChange()); Log(tr("网卡数量改变，更新托盘ToolTip")); }
+        else {
+            bool flag = true;
+            for(int i=0;i<ipList_Curr.size();i++){
+                bool flag_1 = false;
+                for(int j=0;j<ipList.size();j++){
+                    if(ipList_Curr.at(i)==ipList.at(j)) {flag_1 = true; break;}
+                }
+                flag = flag & flag_1;
+            }
+            /**发送信号使UI更新托盘信息*/
+            if(!flag) {emit(ipChange()); Log(tr("网卡IP改变，更新托盘ToolTip"));}
+        }
+    }
+
 }
 
 QString msgServer::encrypt(QString msg){
@@ -186,8 +210,9 @@ QString msgServer::getIPv4(qint32 ip){
 }
 
 void  msgServer::getLanBrocastAddress(){
-    ipList.clear(); networkcardList.clear();
+    ipList.clear(); brocastList.clear();  networkcardList.clear();
     QList<QNetworkInterface> interfaceList = QNetworkInterface::allInterfaces();
+    Log(tr("获取网卡信息："));
      for (int i = 0; i < interfaceList.count(); i++)
      {
          QNetworkInterface interf = interfaceList.at(i);
@@ -218,11 +243,41 @@ void  msgServer::getLanBrocastAddress(){
              QString mask = entry.netmask().toString();            //子网掩码
              QString bcast = entry.broadcast().toString();          //广播地址
              if(bcast.compare("")==0) continue;
-                netInfo[0]=ip; netInfo[1]=bcast;
-             ipList.append(ip); networkcardList.append(networkCardName);
+
+             ipList.append(ip); brocastList.append(bcast); networkcardList.append(networkCardName);
 
              Log(tr("ip：")+ip+tr("  掩码：")+mask+"  广播地址："+bcast);
 
+         }
+
+     }
+}
+
+void  msgServer::getLanBrocastAddress_1(){
+    ipList_Curr.clear();
+    QList<QNetworkInterface> interfaceList = QNetworkInterface::allInterfaces();
+     for (int i = 0; i < interfaceList.count(); i++)
+     {
+         QNetworkInterface interf = interfaceList.at(i);
+         QNetworkInterface::InterfaceFlags interFlags;
+         interFlags = interf.flags();
+         if((interFlags&QNetworkInterface::IsUp) &&
+         (interFlags&QNetworkInterface::IsRunning) &&
+         (interFlags&QNetworkInterface::CanBroadcast) &&
+         (interFlags&QNetworkInterface::CanMulticast) &&
+         !(interFlags&QNetworkInterface::IsLoopBack)){ }else continue;
+
+         QString networkCardName=interf.humanReadableName();
+         if(networkCardName.contains("Loopback")) continue;
+
+        QList<QNetworkAddressEntry> entryList = interf.addressEntries();
+         for(int j = 0; j < entryList.count(); j++)
+         {
+             QNetworkAddressEntry entry = entryList.at(j);
+             QString ip = entry.ip().toString();                             //IP地址
+             QString bcast = entry.broadcast().toString();          //广播地址
+             if(bcast.compare("")==0) continue;
+                ipList_Curr.append(ip);
          }
 
      }

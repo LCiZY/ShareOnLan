@@ -1,5 +1,15 @@
 <RCC>
     <qresource prefix="/images">
         <file>check_box_checked.png</file>
+        <file>icon_file.png</file>
+        <file>icon_reboot.png</file>
+        <file>icon_ip.png</file>
+        <file>icon_message.png</file>
+        <file>icon_setting.png</file>
+        <file>button_directory.png</file>
+        <file>button_send_file.png</file>
+        <file>button_send_message.png</file>
+        <file>button_setting.png</file>
+        <file>button_edit_location.png</file>
     </qresource>
 </RCC>

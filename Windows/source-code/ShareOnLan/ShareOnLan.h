@@ -13,6 +13,10 @@
 #include<QUrl>
 #include<QtMath>
 #include<QPainter>
+#include<QPainterPath>
+#include<QRectF>
+#include<QPolygon>
+#include<QRegion>
 
 #include<config.h>
 #include<msgserver.h>
@@ -50,12 +54,13 @@ public slots:
     void on_SendFile();
     void on_ShowNetInfo();
     void on_restartServer();
-    void on_showMainAction();
+    void on_showSettingAction();
 
     void on_exitAppAction();
 
     void portChange(QString);
     void secretChange(QString);
+    void sysTrayTextChange();
     void slot_checkBox_ifhidewhenlaunch(bool);
     void slot_checkBox_autoLaunch(bool);
     void showMini();
@@ -77,7 +82,7 @@ private:
     QAction *mSendFile;
     QAction *mConnectInfoAction;
     QAction *mRestartServiceAction;
-    QAction *mShowMainAction;
+    QAction *mSettingAction;
     QAction *mExitAppAction;
     QIntValidator *valid_port;
     QLocalServer* m_localServer;
@@ -96,7 +101,7 @@ public:
     void sysTrayMenuInit();
     void varInit();
     void clearConnection();
-    void sysTrayTextChange();
+
 
 
     bool detectSingleInstance();

@@ -202,10 +202,11 @@ public class MainActivity extends AppCompatActivity {
         if(ConnectionInfo.ifSended) return;
         if(tcpConnectionChannel.establishFlag) {
             checkOpenFile();
-            if(checkBox_ifEnableAutoSend.isChecked())checkClipBoardText(); //检测剪贴板的文字
+            if(checkBox_ifEnableAutoSend.isChecked()) checkClipBoardText(); //检测剪贴板的文字
         }
-        else
+        else {
             toastOnUI("网络异常：未连接至PC");
+        }
     }
 
 
@@ -214,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         System.out.println("newIntent--------------------------");
-        ConnectionInfo.ifSended = false;
+        ConnectionInfo.ifSended = false;  //有文件到来，设置为发送状态
     }
 
     @Override
@@ -243,6 +244,16 @@ public class MainActivity extends AppCompatActivity {
         sendMessage(getSystemInfo.getClipboardContent(this));
         toastOnUI("剪贴板文本发送成功~");
 
+    }
+
+    public void onSendFileBtnClicked(View view){
+        new AlertDialog.Builder(MainActivity.instance)
+                .setTitle("发送文件至电脑")
+                .setIcon(R.drawable.fly)
+                .setView(R.layout.send_file_specification)
+                .setPositiveButton("确定", null)
+                .create()
+                .show();
     }
 
 
@@ -287,12 +298,13 @@ public class MainActivity extends AppCompatActivity {
         uiChange();
     }
 
-    //在detect线程中调用
+    //需要尝试连接时调用，比如在detect线程中调用
     public  void ConnectionInit(){
         if(ifEditBoxIpPortValidate()) {
             tcpConnectionChannel.closeConnection();
             tryConnect(serverIp, serverPort);
         }
+        if(tcpConnectionChannel.establishFlag) new Thread(uiThread).start();
     }
 
     private  void tryConnect(String ip,int port){
@@ -374,7 +386,6 @@ public class MainActivity extends AppCompatActivity {
             connnecting_ani.setVisibility(View.GONE);
         }
 
-
     }
 
     public void uiSetIpPort(String ip,String port){
@@ -383,24 +394,18 @@ public class MainActivity extends AppCompatActivity {
         this.edit_port.setText(port);
     }
 
-
-
     public void toastOnUI(final String str){
-
         new Thread(new Runnable() {
             @Override
             public void run() {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
                         Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
-
                     }
                 });
             }
         }).start();
-
     }
 
 
@@ -507,6 +512,7 @@ public class MainActivity extends AppCompatActivity {
                     try { file = new File(file_path);if (!file.exists()) { toastOnUI("文件不存在");continue; } } catch (Exception e) { toastOnUI("文件不存在");continue; }
 
                     System.out.println("==========第"+(i+1)+"个文件开始发送==========");
+                    System.out.println("文件路径："+file_path);
                     toastOnUI("开始发送文件："+file.getName());
 
                     //向PC端发送 "文件名"和"文件大小（字节）",如果有回应则发送文件
@@ -762,9 +768,11 @@ public class MainActivity extends AppCompatActivity {
     public View fileTransferProgressView;
     public AlertDialog fileTransferProgressDialog;
     public ArrowDownloadButton file_progress_animation;
+    public TextView sendStatusTextView;
     public void fileDialogInit(){
         fileTransferProgressView = getLayoutInflater().inflate(R.layout.file_transfer_progress, null);
         file_progress_animation = fileTransferProgressView.findViewById(R.id.arrow_download_button);
+        sendStatusTextView = fileTransferProgressView.findViewById(R.id.sendStatusTextView);
         fileTransferProgressDialog = new AlertDialog.Builder(MainActivity.instance)
                 .setTitle("传输文件")
                 .setIcon(R.drawable.clip)
@@ -777,7 +785,7 @@ public class MainActivity extends AppCompatActivity {
                         tcpFileConnectionChannel.closeSocket();
                     }
                 })
-                .setPositiveButton("取消", new DialogInterface.OnClickListener() {
+                .setPositiveButton("取消传输", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface paramAnonymousDialogInterface,
                                         int paramAnonymousInt) {
                         //取消传输
@@ -883,8 +891,23 @@ public class MainActivity extends AppCompatActivity {
                         handler.sendEmptyMessageDelayed(100,1000);
                         alertDialog.show();
                     }else if(PopupMenu.MENUITEM.DETELEALL == item){
-                         toastOnUI(FileUtils.deleteAllFileInDir(Config.RECEIVEFILEDIRETORY)?"删除成功~":"删除失败，请检查是否授予权限");
-                         new Thread(MainActivity.listViewRunnable).start();
+
+                        new android.app.AlertDialog.Builder(instance)
+                                .setTitle("删除文件")
+                                .setIcon(R.drawable.delete)
+                                .setMessage("确定要删除所有接收到的文件吗？")
+                                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface paramAnonymousDialogInterface,
+                                                        int paramAnonymousInt) {
+                                        toastOnUI(FileUtils.deleteAllFileInDir(Config.RECEIVEFILEDIRETORY)?"删除成功~":"删除失败，请检查是否授予权限");
+                                        new Thread(MainActivity.listViewRunnable).start();
+                                    }
+                                })
+                                .setNegativeButton("取消",null)
+                                .create()
+                                .show();
+
+
                     }
 
                 }
@@ -975,7 +998,8 @@ public class MainActivity extends AppCompatActivity {
                             fileTransferProgressDialog.setTitle(title);
                             file_progress_animation.reset();
                             fileTransferProgressDialog.show();
-                            fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("取消发送");
+                            sendStatusTextView.setText("正在传输文件");
+                            fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("取消传输");
                             file_progress_animation.startAnimating();
                         }
                     });
@@ -1011,7 +1035,8 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("完成");
+                        sendStatusTextView.setText("文件传输完成");
+                        fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("确定");
                         file_progress_animation.setProgress(100);
                         tcpFileConnectionChannel.progress = 0.0f;
                     }
