@@ -26,7 +26,7 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     varInit();
 
     connect(server,SIGNAL(clientChange()),this,SLOT(clientChange()));
-    connect(server,SIGNAL(ipChange()),this,SLOT(sysTrayTextChange()));
+    connect(server,SIGNAL(ipChange()),this,SLOT(ipChange()));
     connect(fileserver,SIGNAL(newFileConnection()),this,SLOT(showProgressUI()));
     connect(fileserver,SIGNAL(fileTransferDone()),this,SLOT(progressUIDestroy()));
     connect(fileserver,SIGNAL(currFileInfo(int,QString)),this,SLOT(setProgressInfo(int,QString)));
@@ -223,6 +223,11 @@ void ShareOnLan::clientChange(){
     sysTrayTextChange();
     //如果控制连接断开：进度条页面存在则关闭； 关闭filesocket
     if(!server->ifConnected()) { if(this->progressui!=nullptr) progressUIDestroy(); fileserver->closeSocket();  }
+}
+
+void ShareOnLan::ipChange(){
+    server->getLanBrocastAddress();
+    sysTrayTextChange();
 }
 
 void ShareOnLan::sysTrayTextChange(){

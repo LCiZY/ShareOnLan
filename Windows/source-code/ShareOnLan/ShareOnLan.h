@@ -60,7 +60,7 @@ public slots:
 
     void portChange(QString);
     void secretChange(QString);
-    void sysTrayTextChange();
+    void ipChange();
     void slot_checkBox_ifhidewhenlaunch(bool);
     void slot_checkBox_autoLaunch(bool);
     void showMini();
@@ -101,6 +101,7 @@ public:
     void sysTrayMenuInit();
     void varInit();
     void clearConnection();
+    void sysTrayTextChange();
 
 
 
