@@ -6,6 +6,9 @@ Windows平台与安卓在局域网下互传、发送文本、文件的小工具
 包括Windows端的exe和Android端的app
 ***
 
+**博客：**
+[https://blog.csdn.net/weixin_45194636/article/details/109746754](https://blog.csdn.net/weixin_45194636/article/details/109746754)
+
 ## 开发平台与工具
 
 Windows端是基于QT开发的一个GUI程序
