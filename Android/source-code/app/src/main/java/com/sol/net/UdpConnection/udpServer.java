@@ -56,7 +56,6 @@ public class udpServer extends Thread{
                         str = new String(data, StandardCharsets.US_ASCII);
                     }else str = new String(data);
 
-                    if(str==null) continue;
                     for(int i=str.length()-1;i>=0;i--){
                        if(0!=(int)str.charAt(i)){str=str.substring(0,i+1); break;}
                     }

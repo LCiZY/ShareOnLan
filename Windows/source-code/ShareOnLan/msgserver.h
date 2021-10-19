@@ -13,7 +13,7 @@
 #include<QHostInfo>
 #include<QNetworkInterface>
 #include<QStack>
-
+#include <QMutex>
 
 
 class msgServer : public QTcpServer

@@ -10,9 +10,8 @@ public class DetectThread extends Thread{
     private boolean ifFirstLoop = true;
 
     public static boolean detectFlag = true;
-    private Runnable uiRun;
-    public DetectThread(Runnable uiRun){
-        this.uiRun = uiRun;
+    public DetectThread(){
+
     }
 
     @Override
@@ -26,15 +25,18 @@ public class DetectThread extends Thread{
                       Looper.prepare(); ifFirstLoop = false;
                 }
 
-                if(MainActivity.instance==null) {DetectThread.detectFlag = false;System.out.println("-----------------------------MainActivity.instance为null！！！");}
-                MainActivity.instance.ConnectionInit();
-//                if(tcpConnectionChannel.establishFlag) new Thread(uiRun).start(); //连接成功，更新界面
+                if(MainActivity.instance==null) {
+                    DetectThread.detectFlag = false;
+                    System.out.println("-----------------------------MainActivity.instance为null！！！");
+                    continue;
+                }
+                MainActivity.instance.ConnectionInit(null, null, null);
 
             }
 
             if (!detectFlag) break;
             try {
-                sleep(5000);
+                sleep(500);
             } catch (InterruptedException e) {
                 if (!detectFlag)  break;
             }

@@ -19,6 +19,7 @@ public class PopupMenu extends PopupWindow implements OnClickListener {
 	private View v_item1;
 	private View v_item2;
 	private View v_item3;
+	private View v_item4;
 
 	private OnItemClickListener onItemClickListener;
 
@@ -29,7 +30,7 @@ public class PopupMenu extends PopupWindow implements OnClickListener {
 	 *
 	 */
 	public enum MENUITEM {
-		RECONNECT, CLIPHISTORY, DETELEALL
+		RECONNECT, CLIPHISTORY, DETELEALL, SPECIFICATION
 	}
 
 	public PopupMenu(Activity activity) {
@@ -51,10 +52,12 @@ public class PopupMenu extends PopupWindow implements OnClickListener {
 		v_item1 = popView.findViewById(R.id.ly_item1);
 		v_item2 = popView.findViewById(R.id.ly_item2);
 		v_item3 = popView.findViewById(R.id.ly_item3);
+		v_item4 = popView.findViewById(R.id.ly_item4);
 		// 添加监听
 		v_item1.setOnClickListener(this);
 		v_item2.setOnClickListener(this);
 		v_item3.setOnClickListener(this);
+		v_item4.setOnClickListener(this);
 
 	}
 
@@ -83,6 +86,9 @@ public class PopupMenu extends PopupWindow implements OnClickListener {
 			str = "剪贴板记录";
 		} else if (v == v_item3) {
 			menuitem = MENUITEM.DETELEALL;
+			str = "删除接收到的文件";
+		} else if (v == v_item4) {
+			menuitem = MENUITEM.SPECIFICATION;
 			str = "删除接收到的文件";
 		}
 		if (onItemClickListener != null) {

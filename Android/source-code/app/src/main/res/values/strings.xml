@@ -12,4 +12,11 @@
     <string name="way2">方式二：在已连接状态下，使用系统的分享功能通过本应用发送至电脑(此处以相册为例)</string>
     <string name="way2step1">步骤一：点击分享按钮</string>
     <string name="way2step2">步骤二：选择本应用</string>
+
+
+    <string name="useSpecificationTitle">使用说明</string>
+    <string name="useSpecification1">1:由于系统的隐私保护功能，发送与接收(文本、文件)都需要保持应用在前台显示</string>
+    <string name="useSpecification2">2:文本会自动发送/接收至两端设备的剪贴板中</string>
+    <string name="useSpecification3">3:若连接异常(手机端显示连接正常但无法发送)，可以在PC端的托盘上点击右键，然后点击重启服务</string>
+
 </resources>

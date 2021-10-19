@@ -47,7 +47,7 @@ void fileServer::serverShutDown(){
 
 
 void fileServer::incomingConnection(int descriptor){
-    qDebug()<<"file income";
+
     if(this->fileSocket!=nullptr) { return; }
     pauseAccepting();
     Log(tr("接收到文件传输连接:")+QString::number(descriptor));

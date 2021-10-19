@@ -20,7 +20,7 @@ msgServer::~msgServer(){
 
 void msgServer::incomingConnection(int descriptor){
 
-    if(this->socket!=nullptr){Log(tr("已存在其他TCP连接！拒绝连接"));  return;}
+    if(this->socket!=nullptr){ Log(tr("已存在其他TCP连接！拒绝连接"));  return; }
     pauseAccepting();
     this->socket = new QTcpSocket(this);
     this->socket->setSocketDescriptor(descriptor);
@@ -133,7 +133,7 @@ void msgServer::timerEvent(QTimerEvent *e){
 
     /**检查连接是否正常*/
     if(checkClientAliveTimerID == e->timerId()){
-        //如果已经连接，则heartbeat：每 8 秒自动回复: R\n
+        //如果已经连接，则heartbeat：每 2 秒自动回复: R\n
         if(this->socket!=nullptr){
           //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
             if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0;} Log("检测到连接异常-1，自动断开"); }

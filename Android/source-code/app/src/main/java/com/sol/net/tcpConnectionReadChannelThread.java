@@ -45,8 +45,7 @@ public class tcpConnectionReadChannelThread extends tcpConnectionChannel {
             str = str.replace(ConnectionInfo.REPLACER,"\r");
 
             System.out.print("tick:"+(tick++)+" ");
-           if(!ConnectionInfo.RESPONSE.equals(str)) {
-               //如果不是”控制连接“消息
+           if(!ConnectionInfo.RESPONSE.equals(str)) { //如果不是”心跳包“消息
                receiveStr = str;
                if(str.indexOf(ConnectionInfo.FILEINFOCONTROLMESSAGE)==0) {//PC端告知本移动端 要发送文件 并 发来文件信息
                    ConnectionInfo.processReceiveFileInfo(str);
@@ -60,10 +59,10 @@ public class tcpConnectionReadChannelThread extends tcpConnectionChannel {
                    ConnectionInfo.clipDatas.addFirst(receiveStr);
                    handler.sendEmptyMessageDelayed(100,0);
                    enableClipChangeSend();
+                   MainActivity.instance.toastOnUI("接收到来自PC的消息，已复制到剪贴板。");
 
                }
-           }else if(ConnectionInfo.RESPONSE.equals(str)){
-               //如果是”控制连接“消息，回应一个”控制连接“消息报文
+           }else if(ConnectionInfo.RESPONSE.equals(str)) {  //如果是”心跳包“消息，回应一个”心跳包“消息报文
                MainActivity.instance.sendMessage(ConnectionInfo.RESPONSE+"\n");
            }
 

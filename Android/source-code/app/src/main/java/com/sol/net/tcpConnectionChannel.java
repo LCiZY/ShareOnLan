@@ -1,5 +1,7 @@
 package com.sol.net;
 
+import com.sol.MainActivity;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -10,11 +12,11 @@ public class tcpConnectionChannel extends Thread{
 
 
 
-    public static final int connectTimeOutValue = 3;  //数据读取超时时间
+    public static final int connectTimeOutValue = 3;  //连接超时时间
     public static final int readTimeOutValue = 10;  //数据读取超时时间
     public static boolean r_runFlag = false;
     public static boolean w_runFlag = false;
-    public static boolean establishFlag = false;
+    public static volatile boolean establishFlag = false;
     public static String server_ip = null;
     public static int server_port = 0;
     public static Socket client = null;
@@ -29,9 +31,10 @@ public class tcpConnectionChannel extends Thread{
 
     public static void connectTo(String server_ip,int server_port) throws Exception{
 
-        client = new Socket();
+        if (client == null) client = new Socket();
         client.connect(new InetSocketAddress(server_ip,server_port),connectTimeOutValue*1000);
-        if(client==null)  { throw new Exception("error:socket error"); }
+        System.out.println("client socket isConnected:  "+ client.isConnected());
+
         tcpConnectionChannel.server_ip = server_ip;
         tcpConnectionChannel.server_port = server_port;
 

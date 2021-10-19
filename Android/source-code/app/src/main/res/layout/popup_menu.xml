@@ -64,5 +64,25 @@
             android:textColor="#595d5f"
             android:text="删除文件" />
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dip"
+        android:background="#eeeeee" />
+    <LinearLayout
+        android:id="@+id/ly_item4"
+        android:layout_width="match_parent"
+        android:layout_height="45dip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_default_button_selector" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:paddingLeft="20dip"
+            android:textColor="#595d5f"
+            android:text="使用说明" />
+    </LinearLayout>
 
 </LinearLayout>

@@ -107,8 +107,8 @@ void ShareOnLan::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reaso
     case QSystemTrayIcon::DoubleClick:
         //双击托盘图标
         //双击后显示主程序窗口
-        this->showMaximized();
-        this->move(QApplication::desktop()->availableGeometry().width()-rect().width()/2,QApplication::desktop()->availableGeometry().height()-rect().height()/2);
+        this->on_showSettingAction();
+
         break;
     case QSystemTrayIcon::Unknown:
     case QSystemTrayIcon::Trigger:
@@ -260,8 +260,10 @@ void ShareOnLan::on_SendFile(){
 }
 
 void ShareOnLan::on_showSettingAction(){
-    this->showMaximized();
-    this->move(QApplication::desktop()->availableGeometry().width()-rect().width()/2,QApplication::desktop()->availableGeometry().height()-rect().height()/2);
+    this->move((QApplication::desktop()->availableGeometry().width()-rect().width())/2,(QApplication::desktop()->availableGeometry().height()-rect().height())/2);
+    this->show();
+    this->raise();
+    this->activateWindow();
 }
 
 //显示本机IP等信息
