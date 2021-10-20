@@ -47,6 +47,15 @@ void Log(QString content){
         out <<QDate::currentDate().toString(Qt::ISODate).toUtf8()<<" "<<QTime::currentTime().toString("hh:mm:ss")<<"\t"<<content.toUtf8()<< "\n" ;
         logFile.close();
     }
+}
 
+void LogWithoutTime(QString content){
+    qDebug()<<content;
+    QFile logFile(conf->configDirectoryPath+QString("/")+conf->logFileName);
+    if(logFile.open(QIODevice::Append)){
+        QTextStream out(&logFile); out.setCodec("UTF-8");
+        out << content.toUtf8() << "\n" ;
+        logFile.close();
+    }
 
 }

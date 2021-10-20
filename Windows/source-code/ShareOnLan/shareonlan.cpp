@@ -7,24 +7,42 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     ui(new Ui::ShareOnLan)
 {
     ui->setupUi(this);
+    LogWithoutTime("\n\n");
     Log("程序开始运行");
 
     this->setWindowTitle(tr("ShareOnLan"));
     this->setWindowIcon(QIcon(":/icon/transfer_64.png"));
     this->setWindowFlag(Qt::FramelessWindowHint,true);
     this->setAttribute(Qt::WA_TranslucentBackground,true);
-
     QApplication::setQuitOnLastWindowClosed(false);
 
-    server = new msgServer(this,conf->getConfig("port").toInt());
-    fileserver = new fileServer;
+    serverInit();
 
     windowInit();
-    sysTrayIconInit();
+    sysTrayIconInit(); // 依赖msgserver的初始化
     sysTrayMenuInit();
-
     varInit();
 
+
+}
+
+ShareOnLan::~ShareOnLan()
+{
+    Log("主窗体析构调用");
+    conf->deleteLater();
+    fileserver->deleteLater();
+    server->deleteLater();
+    delete ui;
+    Log("主窗体析构调用完成，程序结束运行");
+}
+
+bool ShareOnLan::listening(){
+    return server->listenOn(server->listeningPort) && fileserver->listenOn(fileserver->fileServerListeningPort);
+}
+
+void ShareOnLan::serverInit(){
+    server = new msgServer(this,conf->getConfig("port").toInt());
+    fileserver = new fileServer;
     connect(server,SIGNAL(clientChange()),this,SLOT(clientChange()));
     connect(server,SIGNAL(ipChange()),this,SLOT(ipChange()));
     connect(fileserver,SIGNAL(newFileConnection()),this,SLOT(showProgressUI()));
@@ -32,18 +50,6 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     connect(fileserver,SIGNAL(currFileInfo(int,QString)),this,SLOT(setProgressInfo(int,QString)));
     connect(fileserver,SIGNAL(receiveProgress(qint64)),this,SLOT(progressUIChange(qint64)));
     connect(fileserver,SIGNAL(sendProgress(qint64)),this,SLOT(progressUIChange(qint64)));
-
-
-}
-
-ShareOnLan::~ShareOnLan()
-{
-    Log("析构调用");
-    conf->deleteLater();
-    fileserver->deleteLater();
-    delete ui;
-    Log("析构调用完成");
-    Log("程序结束运行");
 }
 
 void ShareOnLan::windowInit(){
@@ -77,9 +83,7 @@ void ShareOnLan::windowInit(){
 void ShareOnLan::varInit(){
     //拖动窗口移动标志
     moveFlag=false;
-
     progressui = nullptr;
-
 
 }
 
@@ -92,12 +96,12 @@ void ShareOnLan::setWinFlags(){
 
 void ShareOnLan::sysTrayIconInit(){
 
-        //创建QSystemTrayIcon对象
-        mSysTrayIcon = new QSystemTrayIcon(this);
-        //设置QSystemTrayIcon图标
-        mSysTrayIcon->setIcon(QIcon(":/icon/transfer.png"));
-        //为托盘图标绑定槽函数
-        connect(mSysTrayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)));
+    //创建QSystemTrayIcon对象
+    mSysTrayIcon = new QSystemTrayIcon(this);
+    //设置QSystemTrayIcon图标
+    mSysTrayIcon->setIcon(QIcon(":/icon/transfer.png"));
+    //为托盘图标绑定槽函数
+    connect(mSysTrayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)));
 
 }
 
@@ -129,54 +133,54 @@ void ShareOnLan::on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason reaso
 
 void ShareOnLan::sysTrayMenuInit(){
 
-        mMenu = new QMenu(this);
-        // 设置圆角的前置设置
-//        mMenu->setWindowFlags(Qt::FramelessWindowHint);
-//        mMenu->setAttribute(Qt::WA_TranslucentBackground);
+    mMenu = new QMenu(this);
+    // 设置圆角的前置设置
+    //        mMenu->setWindowFlags(Qt::FramelessWindowHint);
+    //        mMenu->setAttribute(Qt::WA_TranslucentBackground);
 
-        mSendToPhoneAction = new QAction(QIcon(":/images/icon_message.png"),tr("发送文本"),mMenu);
-        connect(mSendToPhoneAction,SIGNAL(triggered()),this,SLOT(on_SendToPhone()));
+    mSendToPhoneAction = new QAction(QIcon(":/images/icon_message.png"),tr("发送文本"),mMenu);
+    connect(mSendToPhoneAction,SIGNAL(triggered()),this,SLOT(on_SendToPhone()));
 
-        mSendFile = new QAction(QIcon(":/images/icon_file.png"),tr("发送文件"),mMenu);
-        connect(mSendFile,SIGNAL(triggered()),this,SLOT(on_SendFile()));
+    mSendFile = new QAction(QIcon(":/images/icon_file.png"),tr("发送文件"),mMenu);
+    connect(mSendFile,SIGNAL(triggered()),this,SLOT(on_SendFile()));
 
-        mConnectInfoAction = new QAction(QIcon(":/images/icon_ip.png"),tr("本机IP"),mMenu);
-        connect(mConnectInfoAction,SIGNAL(triggered()),this,SLOT(on_ShowNetInfo()));
+    mConnectInfoAction = new QAction(QIcon(":/images/icon_ip.png"),tr("本机IP"),mMenu);
+    connect(mConnectInfoAction,SIGNAL(triggered()),this,SLOT(on_ShowNetInfo()));
 
-        mRestartServiceAction = new QAction(QIcon(":/images/icon_reboot.png"),tr("重启服务"),mMenu);
-        connect(mRestartServiceAction,SIGNAL(triggered()),this,SLOT(on_restartServer()));
+    mRestartServiceAction = new QAction(QIcon(":/images/icon_reboot.png"),tr("重启服务"),mMenu);
+    connect(mRestartServiceAction,SIGNAL(triggered()),this,SLOT(on_restartServer()));
 
-        mSettingAction = new QAction(QIcon(":/images/icon_setting.png"),tr("设置"),mMenu);
-        connect(mSettingAction,SIGNAL(triggered()),this,SLOT(on_showSettingAction()));
-
-
-        mExitAppAction = new QAction(tr("退出"),mMenu);
-        connect(mExitAppAction,SIGNAL(triggered()),this,SLOT(on_exitAppAction()));
+    mSettingAction = new QAction(QIcon(":/images/icon_setting.png"),tr("设置"),mMenu);
+    connect(mSettingAction,SIGNAL(triggered()),this,SLOT(on_showSettingAction()));
 
 
+    mExitAppAction = new QAction(tr("退出"),mMenu);
+    connect(mExitAppAction,SIGNAL(triggered()),this,SLOT(on_exitAppAction()));
 
 
-            //新增菜单项---发送文本
-        mMenu->addAction(mSendToPhoneAction);
-           //新增菜单项---发送文件
-        mMenu->addAction(mSendFile);
-           //增加分隔符----------
-        mMenu->addSeparator();
-           //新增菜单项---关闭连接
-        mMenu->addAction(mConnectInfoAction);
-           //新增菜单项---重启服务
-        mMenu->addAction(mRestartServiceAction);
-           //新增菜单项---显示主界面
-        mMenu->addAction(mSettingAction);
-           //增加分隔符----------
-        mMenu->addSeparator();
-           //新增菜单项---退出程序
-        mMenu->addAction(mExitAppAction);
-           //把QMenu赋给QSystemTrayIcon对象
-        mSysTrayIcon->setContextMenu(mMenu);
 
-           //初始化tooltip
-        sysTrayTextChange();
+
+    //新增菜单项---发送文本
+    mMenu->addAction(mSendToPhoneAction);
+    //新增菜单项---发送文件
+    mMenu->addAction(mSendFile);
+    //增加分隔符----------
+    mMenu->addSeparator();
+    //新增菜单项---关闭连接
+    mMenu->addAction(mConnectInfoAction);
+    //新增菜单项---重启服务
+    mMenu->addAction(mRestartServiceAction);
+    //新增菜单项---显示主界面
+    mMenu->addAction(mSettingAction);
+    //增加分隔符----------
+    mMenu->addSeparator();
+    //新增菜单项---退出程序
+    mMenu->addAction(mExitAppAction);
+    //把QMenu赋给QSystemTrayIcon对象
+    mSysTrayIcon->setContextMenu(mMenu);
+
+    //初始化tooltip
+    sysTrayTextChange();
 }
 
 
@@ -211,9 +215,9 @@ void ShareOnLan::changeFileReceiveLocation(){
 }
 
 void ShareOnLan::openFileLocationFolder(){
-      QString currDir = ui->lineEdit_fileReceiveLocation->text().compare("")==0?QStandardPaths::writableLocation(QStandardPaths::DesktopLocation):ui->lineEdit_fileReceiveLocation->text();
-      if(currDir.compare("")==0) return;
-      QDesktopServices::openUrl(QUrl(tr("file:///")+currDir,QUrl::TolerantMode));
+    QString currDir = ui->lineEdit_fileReceiveLocation->text().compare("")==0?QStandardPaths::writableLocation(QStandardPaths::DesktopLocation):ui->lineEdit_fileReceiveLocation->text();
+    if(currDir.compare("")==0) return;
+    QDesktopServices::openUrl(QUrl(tr("file:///")+currDir,QUrl::TolerantMode));
 }
 
 
@@ -261,9 +265,7 @@ void ShareOnLan::on_SendFile(){
 
 void ShareOnLan::on_showSettingAction(){
     this->move((QApplication::desktop()->availableGeometry().width()-rect().width())/2,(QApplication::desktop()->availableGeometry().height()-rect().height())/2);
-    this->show();
-    this->raise();
-    this->activateWindow();
+    this->showMain();
 }
 
 //显示本机IP等信息
@@ -298,6 +300,12 @@ void ShareOnLan::slot_checkBox_autoLaunch(bool flag){
     conf->setAutomaticStartup(flag);
 }
 
+void ShareOnLan::showMain(){
+    this->show();
+    this->raise();
+    this->activateWindow();
+}
+
 void ShareOnLan::showMini(){
     this->showMinimized();
 }
@@ -314,9 +322,9 @@ void ShareOnLan::on_exitAppAction(){
 
 void  ShareOnLan::showProgressUI(){
     if(this->progressui!=nullptr) { progressui->show(); return;}
-     progressui = new progressUI(nullptr);
-     connect(progressui,SIGNAL(destroyed(QObject*)),this,SLOT(progressUIDestroy()));
-     progressui->showAtBottomRight();
+    progressui = new progressUI(nullptr);
+    connect(progressui,SIGNAL(destroyed(QObject*)),this,SLOT(progressUIDestroy()));
+    progressui->showAtBottomRight();
 
 }
 
@@ -372,8 +380,8 @@ void ShareOnLan::mouseMoveEvent(QMouseEvent *event)
 {
     if(moveFlag)
     {
-     endPoint= event->globalPos() - startPoint + w_startPoint;
-     this->move(endPoint);
+        endPoint= event->globalPos() - startPoint + w_startPoint;
+        this->move(endPoint);
 
     }
 
@@ -382,10 +390,10 @@ void ShareOnLan::mouseMoveEvent(QMouseEvent *event)
 void ShareOnLan::mousePressEvent(QMouseEvent *event){
 
     if(event->globalX()>this->frameGeometry().topLeft().x() && event->globalX()<this->frameGeometry().topRight().x() && event->globalY()>this->frameGeometry().topLeft().y() && event->globalY()<this->frameGeometry().topLeft().y()+30)
-   {
-         startPoint = event->globalPos();
-         w_startPoint= this->frameGeometry().topLeft();
-         moveFlag=true;
+    {
+        startPoint = event->globalPos();
+        w_startPoint= this->frameGeometry().topLeft();
+        moveFlag=true;
     }
 
 }
@@ -398,56 +406,55 @@ void ShareOnLan::mouseReleaseEvent(QMouseEvent *)
 //改写了关闭事件，先关闭服务器监听循环再接受关闭事件
 void ShareOnLan::closeEvent(QCloseEvent* event){
     /**以下四句为正常关闭的代码*/
-//     this->server->close();
-//     this->fileserver->close();
-//     qApp->exit();
-//     event->accept();
-       this->hide();
-       event->ignore();
+    //     this->server->close();
+    //     this->fileserver->close();
+    //     qApp->exit();
+    //     event->accept();
+    this->hide();
+    event->ignore();
 }
 
-
-
-
-
-
-
-bool ShareOnLan::detectSingleInstance(){
-
-    QString serverName = QCoreApplication::applicationName();
-        QLocalSocket socket;
-        socket.connectToServer(serverName);
-        if (socket.waitForConnected(500)) { //如果能够连接得上的话，将参数发送到服务器，然后退出
-            Log("程序已经运行");
-            return true;
-        }
-    //运行到这里，说明没有实例在运行，那么创建服务器。
-        m_localServer = new QLocalServer(this);
-        connect(m_localServer, SIGNAL(newConnection()),
-                this, SLOT(newLocalSocketConnection())); //监听新到来的连接
-
-        if (!m_localServer->listen(serverName)) {
-            if (m_localServer->serverError() == QAbstractSocket::AddressInUseError
-                && QFile::exists(m_localServer->serverName())) { //确保能够监听成功
-                QFile::remove(m_localServer->serverName());
-                m_localServer->listen(serverName);
-            }
-
-        }
-    return false;
+void ShareOnLan::setLocalServer( QLocalServer* m_localServer){
+    this->m_localServer = m_localServer;
+    connect(m_localServer, SIGNAL(newConnection()), this, SLOT(newLocalSocketConnection())); //监听新到来的连接
 }
 
 void ShareOnLan::newLocalSocketConnection(){
-
     QLocalSocket *socket = m_localServer->nextPendingConnection();
-
-        if (!socket) return;
-        socket->waitForReadyRead(1000);
-        QTextStream stream(socket);
-        socket->deleteLater();
-        this->show();
-        this->raise();
-        this->activateWindow();
-
+    if (!socket) return;
+    socket->waitForReadyRead(1000);
+    socket->deleteLater();
+    this->showMain();
 }
+
+
+
+
+
+bool SOLSingleInstanceDetecter::detectSingleInstance(){
+
+    QLocalSocket socket; //在Windows上是有名管道，在Linux上是socket
+    socket.connectToServer(serverName);
+    if (socket.waitForConnected(500)) { //如果能够连接得上的话，将参数发送到服务器，然后退出
+        Log("程序已经运行");
+        return true;
+    }
+
+    return false;
+}
+
+bool  SOLSingleInstanceDetecter::buildLocalServer(){
+    //运行到这里，说明没有实例在运行，那么创建服务器。
+    m_localServer = new QLocalServer(this);
+    if (!m_localServer->listen(serverName)) {
+        if (m_localServer->serverError() == QAbstractSocket::AddressInUseError
+                && QFile::exists(m_localServer->serverName())) { //确保能够监听成功
+            QFile::remove(m_localServer->serverName());
+            return m_localServer->listen(serverName);
+        }
+
+    }
+    return false;
+}
+
 

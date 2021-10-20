@@ -63,6 +63,7 @@ public slots:
     void ipChange();
     void slot_checkBox_ifhidewhenlaunch(bool);
     void slot_checkBox_autoLaunch(bool);
+    void showMain();
     void showMini();
     void hideWindow();
     void changeFileReceiveLocation();
@@ -73,6 +74,7 @@ public slots:
     void progressUIChange(qint64);
     void progressUIDestroy();
 
+    void newLocalSocketConnection();
 
 private:
     Ui::ShareOnLan *ui;
@@ -95,23 +97,33 @@ private:
     QPoint startPoint,endPoint,w_startPoint;  //移动主窗口所用点,分别为鼠标点击起始点。鼠标移动后的点。窗口初始位置
     bool moveFlag;
 public:
+    bool listening();
+    void serverInit();
     void windowInit();
-    void setWinFlags();
     void sysTrayIconInit();
     void sysTrayMenuInit();
     void varInit();
+    void setWinFlags();
     void clearConnection();
     void sysTrayTextChange();
 
 
+    void setLocalServer( QLocalServer* m_localServer);
 
-    bool detectSingleInstance();
 private:
     QString tray_tooltip;
 
-private slots:
-    void newLocalSocketConnection();
+};
 
+class SOLSingleInstanceDetecter : public QObject
+{
+    Q_OBJECT
+
+public:
+    QString serverName = "ShareOnLanSingleInstanceServer";
+    bool detectSingleInstance();
+    bool buildLocalServer();
+    QLocalServer* m_localServer;
 };
 
 #endif // SHAREONLAN

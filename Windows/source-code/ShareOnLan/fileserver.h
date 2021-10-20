@@ -48,7 +48,7 @@ public:
 public:
     const int fileServerListeningPort = 65534;
     bool ifConnected();
-    void listenOn(int port);
+    bool listenOn(int port);
     void closeSocket();
     void serverShutDown();
     void setFileSize(int);

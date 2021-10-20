@@ -644,6 +644,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } catch (IOException e) {
                     toastOnUI("打开文件失败");
+                    e.printStackTrace();
                     tcpFileConnectionChannel.closeConnection();
                 } catch (Exception e) {
                     e.printStackTrace();

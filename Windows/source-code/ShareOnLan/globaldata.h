@@ -31,5 +31,6 @@ QString getFileInfo(QString filePath);
 QString formatIPSpace(QString ip);
 
 void Log(QString content);
+void LogWithoutTime(QString content);
 
 #endif // GLOBALDATA_H

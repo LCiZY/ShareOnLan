@@ -2,14 +2,14 @@
 
 msgServer::msgServer(QObject *, int port)
 {
-    this->listenOn(port);
+    this->listeningPort = port;
     this->socket = nullptr;
     this->udpSocket = new QUdpSocket;
     this->msg = "";
 
 
     getLanBrocastAddress();
-    checkClientAliveTimerID = startTimer((timeOutValue-2)*1000);
+    checkClientAliveTimerID = startTimer((timeOutValue-4)*1000); // timeOutValue是Android端读超时时间readTimeOutValue，PC端必须在超时之前发送心跳包给Android端
     checkIPClientTimerID = startTimer(4000);
 }
 
@@ -113,10 +113,15 @@ void msgServer::serverShutDown(){
 }
 
 //服务启动，监听某个端口
-void msgServer::listenOn(int port){
+bool msgServer::listenOn(int port){
     close();
-    listen(QHostAddress::Any,port);
-    this->listeningPort = port;
+    bool ok;
+    if((ok = listen(QHostAddress::Any,port))){
+        Log(QString("消息服务器：监听成功，端口：%1").arg(QString::number(port)));
+    }else{
+        Log(QString("消息服务器：监听失败，端口：%1。程序退出。").arg(QString::number(port)));
+    }
+    return ok;
 }
 
 

@@ -4,8 +4,15 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    SOLSingleInstanceDetecter d;
+    if(d.detectSingleInstance()) return 1; // 利用socket检测是否只有本应用的一个实例
+    d.buildLocalServer();
+
     ShareOnLan w;
     w.setWinFlags();
-    if(w.detectSingleInstance()) return 0;
+    w.setLocalServer(d.m_localServer);
+    if(!w.listening()) return -2;
+
     return a.exec();
 }

@@ -11,7 +11,6 @@ fileServer::fileServer()
     this->sendFileThread = nullptr;
     this->receiveFileThread = nullptr;
 
-    listenOn(fileServerListeningPort);
     ifSend = false;
 }
 
@@ -21,11 +20,16 @@ bool fileServer::ifConnected(){
 
 }
 
-void fileServer::listenOn(int port){
+bool fileServer::listenOn(int port){
 
     close();
-    listen(QHostAddress::Any,port);
-
+    bool ok;
+    if((ok = listen(QHostAddress::Any,port))){
+        Log(QString("文件服务器：监听成功，端口：%1").arg(QString::number(port)));
+    }else{
+        Log(QString("文件服务器：监听失败，端口：%1。程序退出。").arg(QString::number(port)));
+    }
+    return ok;
 
 }
 

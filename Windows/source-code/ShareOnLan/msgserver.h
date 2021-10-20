@@ -43,7 +43,7 @@ public slots:
     void sendMsg(QString);
     void socketDisconnect();
     QString getConnection();
-    void listenOn(int port);
+    bool listenOn(int port);
     void serverShutDown();
 
 
