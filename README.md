@@ -18,7 +18,7 @@ Android端是基于Android Studio开发的app
 ***
 
 ## 运行原理&设计思路
-![应用拓扑图](ScreenShots/应用拓扑图.png)
+![应用拓扑图](Screenshots/应用拓扑图.png)
 
 对于PC设备A和Android设备A来说，PC设备A和Android设备A只能看到路由器A，Android设备B所在的那一层对于前面说的两个设备来说是内网设备而不可见（因为Android设备B所在的网络是属于路由器A的子网），这也就是为什么你在外面用移动数据不能直接连接家里的没有公网ip的设备了(想连接的话可以用内网穿透工具如frp）。
 
