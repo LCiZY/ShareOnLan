@@ -18,7 +18,7 @@ Android端是基于Android Studio开发的app
 ***
 
 ## 运行原理&设计思路
-![原理图](https://img-blog.csdnimg.cn/20201117174213479.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NTE5NDYzNg==,size_16,color_FFFFFF,t_70#pic_center)
+![应用拓扑图](ScreenShots/应用拓扑图.png)
 
 对于PC设备A和Android设备A来说，PC设备A和Android设备A只能看到路由器A，Android设备B所在的那一层对于前面说的两个设备来说是内网设备而不可见（因为Android设备B所在的网络是属于路由器A的子网），这也就是为什么你在外面用移动数据不能直接连接家里的没有公网ip的设备了(想连接的话可以用内网穿透工具如frp）。
 
@@ -51,7 +51,7 @@ Android端是基于Android Studio开发的app
 
 #### 主界面
 
-![主界面](https://files.catbox.moe/aski5n.jpg)
+![主界面](Screenshots/PC端主界面.jpg)
 
   
 
@@ -65,7 +65,7 @@ Android端是基于Android Studio开发的app
 
 #### PC端托盘菜单
 
-![托盘菜单](https://files.catbox.moe/0mrn1g.jpg)
+![托盘菜单](Screenshots/PC端托盘菜单.jpg)
 
   
 
@@ -80,7 +80,7 @@ Android端是基于Android Studio开发的app
 
 #### PC端托盘菜单的ToolTip
 
-![PC端托盘菜单的ToolTip](https://files.catbox.moe/07b6sy.jpg)
+![PC端托盘菜单的ToolTip](Screenshots/PC端托盘信息.jpg)
 
 如果PC上有多个网卡是有效的，会显示多行的 **IP:xx.xxx.xx.xxx**
 
@@ -88,7 +88,7 @@ Android端是基于Android Studio开发的app
 
 #### PC端文件接收设置
 
-![PC端文件接收设置](https://files.catbox.moe/sc4vpj.jpg)
+![PC端文件接收设置](Screenshots/PC端文件接收设置.jpg)
 
 ***
 
@@ -96,10 +96,10 @@ Android端是基于Android Studio开发的app
 
 #### Android端界面介绍
 
-|        Android端未连接/正在连接界面         |           Android端已连接界面            |             Android端接收到的文件             |
-| :-----------------------------------------: | :--------------------------------------: | :-------------------------------------------: |
-| ![Home](Screenshots/正在连接connecting.jpg) | ![Home](Screenshots/已连接connected.jpg) | ![Home](Screenshots/接收到的文件fileView.jpg) |
-|    点击正中间的按钮会改变并提示当前状态     |      此时点击正中间的按钮会关闭连接      |                                               |
+|             Android端未连接/正在连接界面             |                Android端已连接界面                |                 Android端接收到的文件                  |
+| :--------------------------------------------------: | :-----------------------------------------------: | :----------------------------------------------------: |
+| ![Home](Screenshots/Android端正在连接connecting.jpg) | ![Home](Screenshots/Android端已连接connected.jpg) | ![Home](Screenshots/Android端接收到的文件fileView.jpg) |
+|         点击正中间的按钮会改变并提示当前状态         |          此时点击正中间的按钮会关闭连接           |                                                        |
 
 
 
@@ -107,14 +107,18 @@ Android端是基于Android Studio开发的app
 ***
 #### Android端部分功能演示
 
-|             Android端处理接收到的文件             | 安卓端发送文件到PC端（选择其他应用打开/分享 → 选择Share On Lan） |
-| :-----------------------------------------------: | :----------------------------------------------------------: |
-| ![处理收到的文件](Screenshots/操作文件opFile.gif) |     ![将文件批量发送至PC](Screenshots/传输文件至PC.gif)      |
-|  可以对接收到的文件进行【打开】和【分享】的操作   | 在Android端选择文件后，点击【其他方式打开】或【分享】，然后选择Share On Lan应用就可以发送了 |
+|                 Android端处理接收到的文件                  | 安卓端发送文件到PC端（选择其他应用打开/分享 → 选择Share On Lan） |
+| :--------------------------------------------------------: | :----------------------------------------------------------: |
+| ![处理收到的文件](Screenshots/Android端操作文件opFile.gif) | ![将文件批量发送至PC](Screenshots/Android端传输文件至PC.gif) |
+|       可以对接收到的文件进行【打开】和【分享】的操作       | 在Android端选择文件后，点击【其他方式打开】或【分享】，然后选择Share On Lan应用就可以发送了 |
 
 ***
 
 
+
+## 注意事项
+
+- 经测试，在PC与Android共同连接的路由器交换机特别繁忙时，传输文件会受到一定的影响，此时可以选择其中一方开热点让另一方连接。
 
   
 
