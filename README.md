@@ -1,9 +1,10 @@
 # ShareOnLan
 
 **简介：**
-Windows Connect With Android  
-Windows平台与安卓在局域网下互传、发送文本、文件的小工具  
+Windows Connect With Android 
+Windows平台与安卓在局域网下互传、发送文本、文件的小工具 
 包括Windows端的exe和Android端的app
+
 ***
 
 **博客：**
@@ -45,6 +46,8 @@ Android端是基于Android Studio开发的app
 ***
 
 ## 运行实例
+
+### PC端
 
 #### 主界面
 
@@ -89,36 +92,29 @@ Android端是基于Android Studio开发的app
 
 ***
 
-#### Android端未连接/正在连接界面
+### Android端
 
-![未连接/正在连接界面](https://files.catbox.moe/7dciqq.jpg)
+#### Android端界面介绍
 
-点击正中间的按钮会改变并提示当前状态
+|        Android端未连接/正在连接界面         |           Android端已连接界面            |             Android端接收到的文件             |
+| :-----------------------------------------: | :--------------------------------------: | :-------------------------------------------: |
+| ![Home](Screenshots/正在连接connecting.jpg) | ![Home](Screenshots/已连接connected.jpg) | ![Home](Screenshots/接收到的文件fileView.jpg) |
+|    点击正中间的按钮会改变并提示当前状态     |      此时点击正中间的按钮会关闭连接      |                                               |
+
+
+
+
+***
+#### Android端部分功能演示
+
+|             Android端处理接收到的文件             | 安卓端发送文件到PC端（选择其他应用打开/分享 → 选择Share On Lan） |
+| :-----------------------------------------------: | :----------------------------------------------------------: |
+| ![处理收到的文件](Screenshots/操作文件opFile.gif) |     ![将文件批量发送至PC](Screenshots/传输文件至PC.gif)      |
+|  可以对接收到的文件进行【打开】和【分享】的操作   | 在Android端选择文件后，点击【其他方式打开】或【分享】，然后选择Share On Lan应用就可以发送了 |
 
 ***
 
-#### Android端已连接界面
 
-![Android端已连接界面](https://files.catbox.moe/tdhfqj.jpg)
-
-此时点击正中间的按钮会关闭连接
-
-***
-
-#### Android端接收到的文件
-
-![Android端接收到的文件](https://files.catbox.moe/p3b1kk.jpg)
-***
-
-#### Android端处理接收到的文件
-
-![处理收到的文件](https://files.catbox.moe/axr39y.gif)
-***
-
-#### 安卓端发送文件到PC端（选择其他应用打开/分享 → 选择Share On Lan）
-
-![将文件批量发送至PC](https://files.catbox.moe/2pe92j.gif)
 
   
 
-在Android端选择文件后，点击【其他方式打开】或【分享】，然后选择Share On Lan应用就可以发送了
