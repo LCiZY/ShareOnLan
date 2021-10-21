@@ -27,7 +27,7 @@ bool fileServer::listenOn(int port){
     if((ok = listen(QHostAddress::Any,port))){
         Log(QString("文件服务器：监听成功，端口：%1").arg(QString::number(port)));
     }else{
-        Log(QString("文件服务器：监听失败，端口：%1。程序退出。").arg(QString::number(port)));
+        Log(QString("文件服务器：监听失败，端口：%1").arg(QString::number(port)));
     }
     return ok;
 

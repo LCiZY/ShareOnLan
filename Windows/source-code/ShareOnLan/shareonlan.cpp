@@ -188,9 +188,13 @@ void ShareOnLan::sysTrayMenuInit(){
 //监听的端口号有变更
 void  ShareOnLan::portChange(QString newPort){
     if(newPort.isEmpty()||newPort.isNull()||newPort.compare("")==0||newPort.toInt()<=1024) return;
-    conf->setConfig("port",newPort);
-    server->listenOn(newPort.toInt());
-    sysTrayTextChange();
+    if(server->listenOn(newPort.toInt())){
+        conf->setConfig("port",newPort);
+        sysTrayTextChange();
+    }else{
+        QMessageBox::critical(nullptr,QString("绑定端口失败"),QString("端口%1被占用，请更换端口").arg(newPort),QMessageBox::Ok);
+        ui->lineEdit_port->setText("");
+    }
 }
 
 void ShareOnLan::secretChange(QString newSecret){
@@ -436,7 +440,6 @@ bool SOLSingleInstanceDetecter::detectSingleInstance(){
     QLocalSocket socket; //在Windows上是有名管道，在Linux上是socket
     socket.connectToServer(serverName);
     if (socket.waitForConnected(500)) { //如果能够连接得上的话，将参数发送到服务器，然后退出
-        Log("程序已经运行");
         return true;
     }
 
