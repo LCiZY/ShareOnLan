@@ -661,7 +661,7 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                noFileTextView.setVisibility(files.size() == 0 ? View.VISIBLE:View.INVISIBLE);
+                noFileTextView.setVisibility(files.size() == 0 ? View.VISIBLE:View.GONE);
                 fileListAdapter.dataChange(files);
             }
         });
@@ -707,8 +707,9 @@ public class MainActivity extends AppCompatActivity {
         secretTextView.setText(Config.getConfiguration("secret"));
 
         //adapter
-        fileListAdapter = new FileListAdapter(MainActivity.this, FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
+        fileListAdapter = new FileListAdapter(MainActivity.this);
         fileListView.setAdapter(fileListAdapter);
+        fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
 
         //底部菜单栏的按钮图标
         fileTab.setImageLevel(3);

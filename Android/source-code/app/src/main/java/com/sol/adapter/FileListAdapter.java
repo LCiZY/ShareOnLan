@@ -20,10 +20,9 @@ public class FileListAdapter extends BaseAdapter {
     private ArrayList<String> files;
     private LayoutInflater layoutInflater;
 
-    public FileListAdapter(Context context, ArrayList<String> files) {
-        this.files = files;
+    public FileListAdapter(Context context) {
+        this.files = new ArrayList<>();
         this.layoutInflater = LayoutInflater.from(context);
-
     }
 
     public void dataChange(ArrayList<String> files) {

@@ -277,10 +277,12 @@ android:fillViewport="true">
                                      android:id="@+id/refresh_layout"
                                      android:layout_width="match_parent"
                                      android:layout_height="match_parent">
-                                     <FrameLayout
-                                         android:layout_width="match_parent"
-                                         android:layout_height="match_parent"
-                                         android:layout_gravity="center">
+                                         <ListView
+                                             android:background="#ffffffff"
+                                             android:id="@+id/fileList"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="wrap_content"
+                                             android:overScrollMode="never"/>
                                          <TextView
                                              android:id="@+id/noFileTextView"
                                              android:layout_width="match_parent"
@@ -289,13 +291,7 @@ android:fillViewport="true">
                                              android:text="@string/noReceivedFile"
                                              android:textColor="@color/colorGray"
                                              android:gravity="center" />
-                                         <ListView
-                                             android:background="#ffffffff"
-                                             android:id="@+id/fileList"
-                                             android:layout_width="match_parent"
-                                             android:layout_height="wrap_content"
-                                             android:overScrollMode="never"/>
-                                     </FrameLayout>
+
 
                                  </com.sol.component.circlerefresh.CircleRefreshLayout>
 
