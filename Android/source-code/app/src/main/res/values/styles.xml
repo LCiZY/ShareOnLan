@@ -5,7 +5,7 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorWhite</item>
         <item name="colorPrimaryDark">@color/colorWhite</item>
-        <item name="colorAccent">@color/colorBlue1</item>
+        <item name="colorAccent">@color/colorBlue</item>
     </style>
 
     <style name="SpinKitView">

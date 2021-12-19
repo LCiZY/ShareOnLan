@@ -20,13 +20,13 @@ public class FileListAdapter extends BaseAdapter {
     private ArrayList<String> files;
     private LayoutInflater layoutInflater;
 
-    public FileListAdapter(Context context, ArrayList<String> files){
+    public FileListAdapter(Context context, ArrayList<String> files) {
         this.files = files;
-        this.layoutInflater=LayoutInflater.from(context);
+        this.layoutInflater = LayoutInflater.from(context);
 
     }
 
-    public void dataChange( ArrayList<String> files){
+    public void dataChange(ArrayList<String> files) {
         this.files = files;
         this.notifyDataSetChanged();
     }
@@ -39,8 +39,8 @@ public class FileListAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        if(position<files.size())
-        return files.get(position);
+        if (position < files.size())
+            return files.get(position);
         return null;
     }
 
@@ -49,27 +49,27 @@ public class FileListAdapter extends BaseAdapter {
         return position;
     }
 
-    static class ViewHolder{
+    static class ViewHolder {
         public ImageView l_image;
-        public TextView l_title,l_time;
+        public TextView l_title, l_time;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder viewHolder=null;
-        if(convertView==null){
-            convertView=layoutInflater.inflate(R.layout.layout_list_item,null);
-            viewHolder=new ViewHolder();
-            viewHolder.l_image=convertView.findViewById(R.id.itemImage);
-            viewHolder.l_title=convertView.findViewById(R.id.itemTitle);
-            viewHolder.l_time=convertView.findViewById(R.id.itemTime);
+        ViewHolder viewHolder = null;
+        if (convertView == null) {
+            convertView = layoutInflater.inflate(R.layout.layout_list_item, null);
+            viewHolder = new ViewHolder();
+            viewHolder.l_image = convertView.findViewById(R.id.itemImage);
+            viewHolder.l_title = convertView.findViewById(R.id.itemTitle);
+            viewHolder.l_time = convertView.findViewById(R.id.itemTime);
             convertView.setTag(viewHolder);
-        }else{
-            viewHolder=(ViewHolder) convertView.getTag();
+        } else {
+            viewHolder = (ViewHolder) convertView.getTag();
         }
 
         //System.out.println(data.size());
-        if(files.size()>0&&files.size()>position){
+        if (files.size() > 0 && files.size() > position) {
             File file = new File(files.get(position));
             viewHolder.l_image.setImageLevel(getFileItemIconLevel(FileUtils.getFileSuffix(file)));
             viewHolder.l_title.setText(file.getName());
@@ -81,11 +81,9 @@ public class FileListAdapter extends BaseAdapter {
     }
 
 
-
-
-    public int getFileItemIconLevel(final String suffix){
+    public int getFileItemIconLevel(final String suffix) {
         final String suffix_lower_case = suffix.toLowerCase();
-        switch (suffix_lower_case){
+        switch (suffix_lower_case) {
             case "docx":
             case "doc":
                 return 1;
@@ -121,6 +119,7 @@ public class FileListAdapter extends BaseAdapter {
             case "php":
                 return 7;
             case "jpeg":
+            case "gif":
             case "png":
             case "jpg":
             case "bmp":
@@ -133,16 +132,36 @@ public class FileListAdapter extends BaseAdapter {
             case "nef":
             case "dng":
                 return 8;
+            case "mp4":
+            case "mpg":
+            case "mpeg":
+            case "avi":
+            case "rm":
+            case "rmvb":
+            case "mov":
+            case "wmv":
+            case "asf":
+            case "dat":
+                return 9;
+            case "mp3":
+            case "cda":
+            case "wav":
+            case "aif":
+            case "aiff":
+            case "mid":
+            case "ra":
+            case "wma":
+            case "vqf":
+            case "ape":
+            case "flac":
+                return 10;
+            case "apk":
+                return 11;
 
             default:
-            return 9;
+                return 0;
         }
     }
-
-
-
-
-
 
 
 }

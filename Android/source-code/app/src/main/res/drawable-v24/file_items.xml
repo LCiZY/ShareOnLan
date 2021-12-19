@@ -1,7 +1,7 @@
 <level-list xmlns:android="http://schemas.android.com/apk/res/android" >
     <!--default word excel ppt zip image video  -->
     <item
-        android:drawable="@drawable/file_item_default"
+        android:drawable="@drawable/unknown"
         android:maxLevel="0"/>
 
     <item
@@ -37,6 +37,14 @@
         android:maxLevel="8"/>
 
     <item
-        android:drawable="@drawable/unknown"
+        android:drawable="@drawable/video"
         android:maxLevel="9"/>
+
+    <item
+        android:drawable="@drawable/music"
+        android:maxLevel="10"/>
+
+    <item
+        android:drawable="@drawable/apk"
+        android:maxLevel="11"/>
 </level-list>

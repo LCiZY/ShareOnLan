@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox checkBox_ifEnableAutoSend;
     private TextView secretTextView;
     private CircleRefreshLayout mRefreshLayout;
+    private TextView noFileTextView;
     private ListView fileListView;
     private FileListAdapter fileListAdapter;
     private ImageButton homeTab;
@@ -174,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
         secretTextView = findViewById(R.id.secret);
         mRefreshLayout = findViewById(R.id.refresh_layout);
         fileListView = findViewById(R.id.fileList);
+        noFileTextView = findViewById(R.id.noFileTextView);
         homeTab = findViewById(R.id.homeTab);
         fileTab = findViewById(R.id.fileTab);
 
@@ -655,6 +657,16 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    public void fileListChanged(final ArrayList<String> files){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                noFileTextView.setVisibility(files.size() == 0 ? View.VISIBLE:View.INVISIBLE);
+                fileListAdapter.dataChange(files);
+            }
+        });
+    }
+
 
     public void UIInit() {
 
@@ -729,13 +741,8 @@ public class MainActivity extends AppCompatActivity {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        fileListAdapter.dataChange(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
 
-                                    }
-                                });
+                                fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
                                 try {
                                     Thread.sleep(1200);
                                 } catch (Exception e) {
@@ -794,12 +801,7 @@ public class MainActivity extends AppCompatActivity {
         listViewRunnable = new Runnable() {
             @Override
             public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        fileListAdapter.dataChange(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
-                    }
-                });
+               fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
             }
         };
     }
@@ -1217,17 +1219,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-
-    private String getCurProcessName(Context context) {
-        int pid = android.os.Process.myPid();
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningAppProcessInfo appProcess : activityManager.getRunningAppProcesses()) {
-            if (appProcess.pid == pid) {
-                return appProcess.processName;
-            }
-        }
-        return null;
-    }
 }
 
 

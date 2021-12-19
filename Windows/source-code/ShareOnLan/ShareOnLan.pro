@@ -53,6 +53,7 @@ RESOURCES += \
     config.qrc \
     icon.qrc \
     style.qrc \
+    images.qrc \
     images.qrc
 
 RC_FILE += logo.rc

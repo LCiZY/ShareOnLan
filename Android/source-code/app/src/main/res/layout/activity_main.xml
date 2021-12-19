@@ -92,7 +92,7 @@ android:fillViewport="true">
                                         android:layout_height="wrap_content"
                                         android:layout_gravity="center"
                                         android:visibility="gone"
-                                        app:SpinKit_Color="@color/colorBlue1" />
+                                        app:SpinKit_Color="@color/colorBlue" />
 
 
                                 <ImageView
@@ -271,18 +271,32 @@ android:fillViewport="true">
                                     android:background="@color/colorWhite">
 
                                  <com.sol.component.circlerefresh.CircleRefreshLayout
-                                     app:AniBackColor="#ffffffff"
-                                     app:AniForeColor="#4a5fe2"
+                                     app:AniBackColor="@color/colorWhite"
+                                     app:AniForeColor="@color/colorBlue"
                                      app:CircleSmaller="6"
                                      android:id="@+id/refresh_layout"
                                      android:layout_width="match_parent"
                                      android:layout_height="match_parent">
-                                     <ListView
-                                         android:background="#ffffffff"
-                                         android:id="@+id/fileList"
+                                     <FrameLayout
                                          android:layout_width="match_parent"
                                          android:layout_height="match_parent"
-                                         android:overScrollMode="never"/>
+                                         android:layout_gravity="center">
+                                         <TextView
+                                             android:id="@+id/noFileTextView"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent"
+                                             android:textAlignment="center"
+                                             android:text="@string/noReceivedFile"
+                                             android:textColor="@color/colorGray"
+                                             android:gravity="center" />
+                                         <ListView
+                                             android:background="#ffffffff"
+                                             android:id="@+id/fileList"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="wrap_content"
+                                             android:overScrollMode="never"/>
+                                     </FrameLayout>
+
                                  </com.sol.component.circlerefresh.CircleRefreshLayout>
 
                              </LinearLayout>

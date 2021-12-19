@@ -24,12 +24,12 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         >
-    <TextView
-        android:id="@+id/itemTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="fileName"
-        android:textSize="16dp"/>
+        <TextView
+            android:id="@+id/itemTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="fileName"
+            android:textSize="16dp"/>
         <TextView
             android:id="@+id/itemTime"
             android:layout_width="wrap_content"

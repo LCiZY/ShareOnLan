@@ -141,10 +141,10 @@ void ShareOnLan::sysTrayMenuInit(){
     mSendToPhoneAction = new QAction(QIcon(":/images/icon_message.png"),tr("发送文本"),mMenu);
     connect(mSendToPhoneAction,SIGNAL(triggered()),this,SLOT(on_SendToPhone()));
 
-    mSendFile = new QAction(QIcon(":/images/icon_file.png"),tr("发送文件"),mMenu);
+    mSendFile = new QAction(QIcon(":/images/icon_send_file.png"),tr("发送文件"),mMenu);
     connect(mSendFile,SIGNAL(triggered()),this,SLOT(on_SendFile()));
 
-    mConnectInfoAction = new QAction(QIcon(":/images/icon_ip.png"),tr("本机IP"),mMenu);
+    mConnectInfoAction = new QAction(QIcon(":/images/icon_link.png"),tr("连接信息"),mMenu);
     connect(mConnectInfoAction,SIGNAL(triggered()),this,SLOT(on_ShowNetInfo()));
 
     mRestartServiceAction = new QAction(QIcon(":/images/icon_reboot.png"),tr("重启服务"),mMenu);
@@ -260,11 +260,41 @@ void ShareOnLan::on_SendToPhone(){
 
 void ShareOnLan::on_SendFile(){
     if(!this->server->ifConnected()) { QMessageBox::about(nullptr,"失败","未连接至手机");return;}
+
+    QString filePath = "";
+
+    const QClipboard *clipboard = QApplication::clipboard(); //获取剪切版内容
+    //为数据提供一个容器，用来记录关于MIME类型数据的信息
+    //常用来描述保存在剪切板里信息，或者拖拽原理
+    const  QMimeData *mimeData = clipboard->mimeData();
+    if( mimeData->hasUrls()){
+       QList<QUrl> urls =  mimeData->urls();
+       QString urlPath = urls.at(0).toLocalFile();
+       QFile file(urlPath);
+       if(file.exists()){
+           QString dlgTitle="发送文件";
+           QString strInfo=QString("检测到剪贴板中的文件: %1 是否发送此文件?").arg(urlPath);
+           int result = QMessageBox::question(nullptr, dlgTitle, strInfo, "是", "选择文件", "取消");
+           if (result==0){
+               filePath = urlPath;
+           }else if(result==1){
+               filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+           }
+           else return;
+       }else{
+            Log(QString("剪贴板中的文件 %1 不存在！").arg(urlPath));
+            filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+       }
+    }else{
+        filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+    }
+
     this->fileserver->ifSend = true;
     //用户选择要发送的文件，可能会阻塞很久
-    QString userChooseFileName = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
-    this->server->sendMsg("${FILEINFO}"+getFileInfo(userChooseFileName));
-    this->fileserver->setSendFileName(userChooseFileName);
+    if(filePath == "") return;
+    Log(QString("发送文件：") + filePath);
+    this->server->sendMsg("${FILEINFO}"+getFileInfo(filePath));
+    this->fileserver->setSendFileName(filePath);
 }
 
 void ShareOnLan::on_showSettingAction(){

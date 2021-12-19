@@ -17,6 +17,7 @@
 #include<QRectF>
 #include<QPolygon>
 #include<QRegion>
+#include<QMimeData>
 
 #include<config.h>
 #include<msgserver.h>
