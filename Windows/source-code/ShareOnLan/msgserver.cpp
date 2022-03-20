@@ -42,8 +42,7 @@ void msgServer::socketDisconnect(){
         this->socket->deleteLater();
         this->socket = nullptr;
         //清空文件接收队列
-        receiveFilesNameQueue.clear();
-        receiveFilesSizeQueue.clear();
+        receiveFilesQueue.clear();
         //恢复监听
         resumeAccepting();
         //发送client改变消息
@@ -62,17 +61,12 @@ void msgServer::readMsg(){
         lastMsg =QString::fromUtf8(buf);
 
 
-
-
-        if(lastMsg.indexOf("${FILEINFO}")==0){//如果是文件信息
-            Log(tr("接收到移动端文件信息：")+lastMsg);
-            QStringList splices = lastMsg.split("|");
-            for(int i=1;i+1<splices.size();i+=2){
-                if(splices.at(i)=="fileName")      receiveFilesNameQueue.enqueue(splices.at(i+1));
-                else if(splices.at(i)=="fileSize") receiveFilesSizeQueue.enqueue(splices.at(i+1));
-            }
-            //自动回复: FILEINFO R\n
-            this->socket->write(FILEINFORESPONSE,strlen(FILEINFORESPONSE));
+        if(lastMsg.indexOf(FILE_INFO_MSG_HEAD)==0){//如果是文件信息
+           Log(tr("接收到移动端文件信息：")+lastMsg);
+           FileInfo* rt = parseFileInfoMsg(lastMsg);
+           receiveFilesQueue.enqueue(rt);
+           //自动回复: FILEINFO R\n
+           this->socket->write(FILEINFORESPONSE,strlen(FILEINFORESPONSE));
         }else if(lastMsg.compare(RESPONSE)==0){
            if(this->msgHeartStack.size()) this->msgHeartStack.pop();
         }

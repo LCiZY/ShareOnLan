@@ -47,7 +47,7 @@ void progressUI::changeUILinearly(){
     if(transferCount>=ui->progressBar->maximum()){ui->progressBar->setValue(ui->progressBar->maximum());linearIncreateBarTimer->stop();  }
 }
 
-void  progressUI::setCurrTaskInfo(int fileSize,  QString fileName){
+void  progressUI::setCurrTaskInfo(qint64 fileSize,  QString fileName){
     ui->progressBar->setMaximum(fileSize);
     ui->label_tooltip->setText(tr("正在传输文件：")+fileName);
     ui->label_tooltip->setToolTip(fileName);

@@ -8,13 +8,33 @@
 #include<QStandardPaths>
 #include<QTime>
 #include<QDate>
-
+#include<QMutex>
 #include<QDebug>
+#include <random>
+#include <sstream>
+
+namespace uuid {
+    std::string generate_uuid_v4();
+}
+
+struct SelfFileInfo {
+    qint64 fileSize;
+    qint64 resolveFileSize;
+    QString fileName;
+    QString filePath;
+    QString uniqueID;
+};
+typedef SelfFileInfo FileInfo;
+
+extern QQueue<FileInfo*> receiveFilesQueue;
+extern QQueue<FileInfo*> sendFilesQueue;
+extern QString FileInfoMsgPreffix;
+extern QString FileInfoMsgKey_FileName;
+extern QString FileInfoMsgKey_FileSize;
+extern QString FileInfoMsgKey_UniqueID;
+extern QMutex sendFileListMutex;
 
 
-//extern QHash<QString,QString> fileInfo;
-extern QQueue<QString> receiveFilesNameQueue;
-extern QQueue<QString> receiveFilesSizeQueue;
 extern QStringList ipList;
 extern QStringList brocastList;
 extern QStringList networkcardList;
@@ -23,11 +43,13 @@ extern QString secret;
 extern config *conf;
 extern const int FILESENDBUFFERSIZE;
 extern const int FILEBUFFERSIZE;
-extern int fileSize;
-extern int receiveSize;
-extern QString sendFileName;
 
-QString getFileInfo(QString filePath);
+
+extern QString FILE_INFO_MSG_HEAD;
+
+FileInfo* parseFileInfoMsg(QString fileInfoMsg);
+QString getFileInfoMsg(QString filePath);
+FileInfo* buildFileInfo(QString filePath);
 QString formatIPSpace(QString ip);
 
 void Log(QString content);

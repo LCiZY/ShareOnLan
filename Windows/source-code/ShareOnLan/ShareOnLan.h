@@ -71,7 +71,7 @@ public slots:
     void openFileLocationFolder();
 
     void showProgressUI();
-    void setProgressInfo(int fileSize, QString fileName);
+    void setProgressInfo(qint64 fileSize, QString fileName);
     void progressUIChange(qint64);
     void progressUIDestroy();
 

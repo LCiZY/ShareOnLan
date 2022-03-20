@@ -37,10 +37,10 @@ bool fileServer::listenOn(int port){
 
 //断开连接，关闭socket
 void fileServer::closeSocket(){
-     if(this->fileSocket!=nullptr){
-         this->fileSocket->close();
-         this->fileSocket->deleteLater();
-     }
+    if(this->fileSocket!=nullptr){
+        this->fileSocket->close();
+        this->fileSocket->deleteLater();
+    }
 }
 
 //服务停止，停止监听端口
@@ -57,12 +57,12 @@ void fileServer::incomingConnection(int descriptor){
     Log(tr("接收到文件传输连接:")+QString::number(descriptor));
     this->fileSocket = new FileSocket(descriptor);
     this->fileSocket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
-        connect(fileSocket,SIGNAL(fileTransferDone()),this,SIGNAL(fileTransferDone()));
-        connect(fileSocket,SIGNAL(currFileInfo(int,QString)),this,SIGNAL(currFileInfo(int,QString)));
-        connect(fileSocket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
+    connect(fileSocket,SIGNAL(fileTransferDone()),this,SIGNAL(fileTransferDone()));
+    connect(fileSocket,SIGNAL(currFileInfo(qint64,QString)),this,SIGNAL(currFileInfo(qint64,QString)));
+    connect(fileSocket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
 
     if(ifSend){  //发送文件
-        sendFile(sendFileName);
+        sendFile(sendFileInfo);
         ifSend = false;
     }else{  //接收文件
         receiveFile();
@@ -74,14 +74,10 @@ void fileServer::incomingConnection(int descriptor){
 
 
 void fileServer::socketDisconnect(){
-        Log(tr("文件传输连接关闭。"));
-        if(!receiveFilesNameQueue.isEmpty()&&!receiveFilesSizeQueue.isEmpty()){
-            receiveFilesNameQueue.dequeue();
-            receiveFilesSizeQueue.dequeue();
-            if(receiveFilesNameQueue.size()==0) emit fileTransferDone();
-        }
-        //恢复监听
-        resumeAccepting();
+    Log(tr("文件传输连接关闭。"));
+
+    //恢复监听
+    resumeAccepting();
 }
 
 
@@ -97,10 +93,8 @@ void fileServer::socketDisconnect(){
 
 void fileServer::receiveFile(){
     //设置准备接收文件的大小
-    if(receiveFilesSizeQueue.size()==0||receiveFilesNameQueue.size()==0) {Log("fileServer::receiveFile：文件大小或文件名未知-1");this->fileSocket->close();return; }
-    this->setFileSize(receiveFilesSizeQueue.head().toInt());
+    if(receiveFilesQueue.size()==0) {Log("fileServer::receiveFile：未知的接收文件信息（1）"); this->fileSocket->close();return; }
     //累积接收大小
-    receiveSize = 0;
     receiveFileThread = new QThread();
     //连接数据到来时的槽函数
     connect(fileSocket,SIGNAL(readyRead()),fileSocket,SLOT(receiveFile()));
@@ -126,11 +120,11 @@ void fileServer::receiveFile(){
 *              4.发送文件
 *               5.关闭连接
 */
-void fileServer::sendFile(QString fileName){
+void fileServer::sendFile(FileInfo* sendFileInfo){
 
     sendFileThread = new QThread();
     //连接发送文件时的槽函数
-    connect(this,SIGNAL(fileSend(QString)),fileSocket,SLOT(sendFile(QString)));
+    connect(this,SIGNAL(fileSend(FileInfo*)),fileSocket,SLOT(sendFile(FileInfo*)));
 
     //先将filesocket删除再退出线程（在线程的事件循环结束前调用filesocket的deletelater
     connect(fileSocket,&FileSocket::disconnected,fileSocket,[=](){fileSocket->deleteLater();});
@@ -142,16 +136,16 @@ void fileServer::sendFile(QString fileName){
     //移动到子线程并开始
     fileSocket->moveToThread(sendFileThread);
     sendFileThread->start();
-    Sleep(10); emit fileSend(fileName);
+    Sleep(10); emit fileSend(sendFileInfo);
 
 }
 
 
 
-void FileSocket::sendFile(QString userChooseFileName){
+void FileSocket::sendFile(FileInfo* sendFileInfo){
 
-
-    QFile sendfile(userChooseFileName);
+    QString fp = sendFileInfo->filePath;
+    QFile sendfile(fp);
     if(!sendfile.exists()){Log("FileSocket::sendFile：文件不存在。"); return;}
     if(!sendfile.open(QIODevice::ReadOnly)){
         Log("错误,文件打开失败，请重试");
@@ -159,7 +153,7 @@ void FileSocket::sendFile(QString userChooseFileName){
         return;
     }
 
-    emit currFileInfo((int)sendfile.size(),userChooseFileName);
+    emit currFileInfo(sendfile.size(), fp);
 
     char *buf= new char[FILESENDBUFFERSIZE];
     qint64 length = 1;
@@ -183,62 +177,60 @@ void FileSocket::sendFile(QString userChooseFileName){
 
 void FileSocket::receiveFile(){
 
-    if(receiveFilesSizeQueue.size()==0||receiveFilesNameQueue.size()==0)
-    {Log("fileServer::receiveFile：文件大小或文件名未知-2");this->close(); return; }
+    if(receiveFilesQueue.size()==0){Log("fileServer::receiveFile：未知的接收文件信息（2）");this->close();return; }
 
+
+    FileInfo* fileInfo = receiveFilesQueue.head();
+
+    QString fileSaveDir = conf->getConfig("fileReceiveLocation") == "" ? QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) : conf->getConfig("fileReceiveLocation");
 
     //读取用户默认保存位置
-     QString userChooseFileName = conf->getConfig("fileReceiveLocation")
-                +tr("/")+(receiveFilesNameQueue.head().compare("")==0?tr("untitle.file"):receiveFilesNameQueue.head());
-
-    if(userChooseFileName.compare("")==0){//用户没有设置过路径
-        userChooseFileName = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)
-                +tr("/")+(receiveFilesNameQueue.head().compare("")==0?tr("untitle.file"):receiveFilesNameQueue.head());
-    }
+    QString userChooseFileName = fileSaveDir + tr("/") + (fileInfo->fileName==""?tr("untitle.file"):fileInfo->fileName);
 
     QFile receivefile(userChooseFileName);
-    if(receiveSize==0){
-        Log(tr("开始接收文件,文件大小:%1 文件名:%2").arg(receiveFilesSizeQueue.head()).arg(receiveFilesNameQueue.head()));
-        emit currFileInfo(receiveFilesSizeQueue.head().toInt(),receiveFilesNameQueue.head());
+
+    if(fileInfo->resolveFileSize==0){
+        Log(tr("开始接收文件,文件大小:%1 文件名:%2").arg(QString::number(fileInfo->fileSize)).arg(fileInfo->fileName));
+        emit currFileInfo(fileInfo->fileSize, fileInfo->fileName);
     }
 
-    if(receivefile.open(receiveSize==0?QIODevice::WriteOnly:QIODevice::Append)){
+    if(receivefile.open(fileInfo->resolveFileSize==0?QIODevice::WriteOnly:QIODevice::Append)){
 
-            char *buf=new char[FILEBUFFERSIZE];
-            qint64 length=1;
+        char *buf=new char[FILEBUFFERSIZE];
+        qint64 length=1;
 
-            //耗时操作，接收文件
-            while ((length=this->read(buf,FILEBUFFERSIZE))!=-1&&length!=0) {
-                receivefile.write(buf,length);
-                receiveSize+=length;
-                emit readProgress(length);
-            }
-            delete buf;
-            //接收完成
-            if(receiveSize>=fileSize){
-                 Log(tr("接收文件完成,接收大小:%1 文件保存位置:%2").arg(QString::number(receiveSize)).arg(userChooseFileName));
-                 this->close();
-            }
+        //耗时操作，接收文件
+        while ((length=this->read(buf,FILEBUFFERSIZE))!=-1&&length!=0) {
+            receivefile.write(buf,length);
+            fileInfo->resolveFileSize+=length;
+            emit readProgress(length);
+        }
+        delete buf;
 
-            receivefile.close();
+        receivefile.close();
+    }else{
+        //接收失败
+        Log(tr("接收失败:文件打开失败"));
+    }
 
-            return;
-     }
+    //接收完成
+    if(fileInfo->resolveFileSize >= fileInfo->fileSize) {
+        Log(tr("接收文件完成,接收大小:%1 文件保存位置:%2").arg(QString::number(fileInfo->resolveFileSize)).arg(userChooseFileName));
+        this->close();
+        if(!receiveFilesQueue.isEmpty()){
+            receiveFilesQueue.dequeue();
+            if(receiveFilesQueue.size()==0) emit fileTransferDone();
+        }
+        delete fileInfo;
+    }
 
-    //接收失败
-    Log(tr("接收失败:文件打开失败"));
+
 
 }
 
 
-
-
-void fileServer::setFileSize(int size){
-    fileSize = size;
-}
-
-void fileServer::setSendFileName(QString filename){
-    sendFileName = filename;
+void fileServer::setSendFileInfo(FileInfo* fileInfo){
+    this->sendFileInfo = fileInfo;
 
 }
 

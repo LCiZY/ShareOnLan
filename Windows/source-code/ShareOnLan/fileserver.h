@@ -28,11 +28,11 @@ public:
     FileSocket(int socketdesc,QTcpSocket *parent = NULL);
 public slots:
     void receiveFile();
-    void sendFile(QString);
+    void sendFile(FileInfo *);
 signals:
     void readProgress(qint64);
     void fileTransferDone();
-    void currFileInfo(int fileSize, QString fileName);
+    void currFileInfo(qint64 fileSize, QString fileName);
 
 };
 
@@ -51,20 +51,19 @@ public:
     bool listenOn(int port);
     void closeSocket();
     void serverShutDown();
-    void setFileSize(int);
-    void setSendFileName(QString);
+    void setSendFileInfo(FileInfo *fileInfo);
     bool ifSend;
 
-    void sendFile(QString);
+    void sendFile(FileInfo *sendFileInfo);
     void receiveFile();
 
 signals:
-    void fileSend(QString);
+    void fileSend(FileInfo *);
     void receiveProgress(qint64);
     void sendProgress(qint64);
     void newFileConnection();
     void fileTransferDone();
-    void currFileInfo(int fileSize, QString fileName);
+    void currFileInfo(qint64 fileSize, QString fileName);
 
 public slots:
     void socketDisconnect();
@@ -79,7 +78,7 @@ private:
     QThread* sendFileThread;
     QThread* receiveFileThread;
 
-
+    FileInfo *sendFileInfo;
 
 };
 

@@ -47,7 +47,7 @@ void ShareOnLan::serverInit(){
     connect(server,SIGNAL(ipChange()),this,SLOT(ipChange()));
     connect(fileserver,SIGNAL(newFileConnection()),this,SLOT(showProgressUI()));
     connect(fileserver,SIGNAL(fileTransferDone()),this,SLOT(progressUIDestroy()));
-    connect(fileserver,SIGNAL(currFileInfo(int,QString)),this,SLOT(setProgressInfo(int,QString)));
+    connect(fileserver,SIGNAL(currFileInfo(qint64,QString)),this,SLOT(setProgressInfo(qint64,QString)));
     connect(fileserver,SIGNAL(receiveProgress(qint64)),this,SLOT(progressUIChange(qint64)));
     connect(fileserver,SIGNAL(sendProgress(qint64)),this,SLOT(progressUIChange(qint64)));
 }
@@ -267,7 +267,7 @@ void ShareOnLan::on_SendFile(){
     //为数据提供一个容器，用来记录关于MIME类型数据的信息
     //常用来描述保存在剪切板里信息，或者拖拽原理
     const  QMimeData *mimeData = clipboard->mimeData();
-    if( mimeData->hasUrls()){
+    if(mimeData->hasUrls()){ // 如果剪贴板有文件，询问用户是否发送此文件
        QList<QUrl> urls =  mimeData->urls();
        QString urlPath = urls.at(0).toLocalFile();
        QFile file(urlPath);
@@ -278,23 +278,20 @@ void ShareOnLan::on_SendFile(){
            if (result==0){
                filePath = urlPath;
            }else if(result==1){
-               filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
            }
            else return;
        }else{
             Log(QString("剪贴板中的文件 %1 不存在！").arg(urlPath));
-            filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
        }
-    }else{
-        filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
     }
+    if(filePath == "")
+        filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+    if(filePath == "") return;
 
     this->fileserver->ifSend = true;
-    //用户选择要发送的文件，可能会阻塞很久
-    if(filePath == "") return;
+    this->fileserver->setSendFileInfo(buildFileInfo(filePath));
     Log(QString("发送文件：") + filePath);
-    this->server->sendMsg("${FILEINFO}"+getFileInfo(filePath));
-    this->fileserver->setSendFileName(filePath);
+    this->server->sendMsg(FILE_INFO_MSG_HEAD + getFileInfoMsg(filePath));
 }
 
 void ShareOnLan::on_showSettingAction(){
@@ -312,8 +309,8 @@ void ShareOnLan::clearConnection(){
     server->closeSocket();
     fileserver->closeSocket();
     //清空文件接收队列
-    receiveFilesNameQueue.clear();
-    receiveFilesSizeQueue.clear();
+    receiveFilesQueue.clear();
+    sendFilesQueue.clear();
 }
 
 //重启server：重新监听端口并resume连接并重新检测网络信息
@@ -363,7 +360,7 @@ void  ShareOnLan::showProgressUI(){
 }
 
 
-void  ShareOnLan::setProgressInfo(int fileSize, QString fileName){
+void  ShareOnLan::setProgressInfo(qint64 fileSize, QString fileName){
     if(this->progressui==nullptr) return;
     progressui->setCurrTaskInfo(fileSize,fileName);
 }

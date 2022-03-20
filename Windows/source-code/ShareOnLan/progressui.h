@@ -21,7 +21,7 @@ public:
     explicit progressUI(QWidget *parent = 0);
     ~progressUI();
 
-    void setCurrTaskInfo(int fileSize, QString fileName);
+    void setCurrTaskInfo(qint64 fileSize, QString fileName);
     void showAtBottomRight();
 
 protected:
@@ -46,7 +46,7 @@ private:
     QPoint normalPoint;
 
     int transferCount;
-    int dlength;
+    qint64 dlength;
 
 
 };
