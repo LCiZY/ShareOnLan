@@ -13,30 +13,29 @@ import java.net.Socket;
 public class tcpFileConnectionChannel extends Thread {
 
 
+    public  Socket fileClient = null;
 
-    public static Socket fileClient = null;
     //获取Socket的输出流，用来发送数据到服务端
-    public static PrintStream out = null;
+    public  PrintStream out = null;
 
     //获取Socket的输入流，用来接收从服务端发送过来的数据
-    public static BufferedReader in = null;
+    public  BufferedReader in = null;
 
     //获取socket字节流
-    public static BufferedInputStream bis = null;
+    public  BufferedInputStream bis = null;
 
-    public static boolean establishFlag = false;
+    public  boolean establishFlag = false;
+    public  float progress = 0;
+
 
     public static final int fileServerPort = 65534;
-
     public static final int FILERECEIVEBUFSIZE=512000;
     public static final int FILESENDBUFSIZE=102400;
-
     public static final int FILESOCKETOUTTIME = 10;
 
-    public static float progress = 0;
 
     //只有另一条channel连上了才能连
-    public static void connectTo() throws Exception{
+    public  void connectTo() throws Exception{
 
         fileClient = new Socket();
         System.out.print("连接到ip："+tcpConnectionChannel.server_ip);
@@ -58,7 +57,7 @@ public class tcpFileConnectionChannel extends Thread {
 
 
 
-    public static void closeConnection(){
+    public  void closeConnection(){
         if(fileClient!=null) { try{ fileClient.close();  }catch(Exception e){} }
         if(in!=null) { try{ in.close();  }catch(Exception e){} }
         if(out!=null) { try{ out.close();   }catch(Exception e){} }
@@ -71,9 +70,14 @@ public class tcpFileConnectionChannel extends Thread {
     }
 
 
-    public static void closeSocket(){
+    public  void closeSocket(){
         if(fileClient!=null) { try{ fileClient.close();  }catch(Exception e){} }
         establishFlag = false;
+    }
+
+    protected  boolean cancel = false;
+    public  void cancel(){
+        cancel = true;
     }
 
 

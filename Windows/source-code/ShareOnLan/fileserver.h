@@ -16,7 +16,7 @@
 #include<QThread>
 
 #include<globaldata.h>
-
+#include<time.h>
 
 
 
@@ -25,15 +25,29 @@ class FileSocket : public QTcpSocket
 {
     Q_OBJECT
 public:
-    FileSocket(int socketdesc,QTcpSocket *parent = NULL);
+    FileSocket(int socketdesc, QTcpSocket *parent = NULL);
+    ~FileSocket();
+
+    virtual void timerEvent( QTimerEvent *event);
+
+    void setFileInfo(FileInfo* fileInfo);
+    FileInfo* getFileInfo();
+    bool isTransferDone();
+
 public slots:
     void receiveFile();
-    void sendFile(FileInfo *);
+    void sendFile();
+
 signals:
     void readProgress(qint64);
     void fileTransferDone();
     void currFileInfo(qint64 fileSize, QString fileName);
+private:
+    FileInfo* fileInfo;
+    bool transferDone;
 
+    int detectConnectionTimerID;
+    clock_t lastTransferTime;
 };
 
 
@@ -51,14 +65,13 @@ public:
     bool listenOn(int port);
     void closeSocket();
     void serverShutDown();
-    void setSendFileInfo(FileInfo *fileInfo);
     bool ifSend;
 
-    void sendFile(FileInfo *sendFileInfo);
-    void receiveFile();
+    void sendFile(FileSocket* socket);
+    void receiveFile(FileSocket* socket);
 
 signals:
-    void fileSend(FileInfo *);
+    void fileSend();
     void receiveProgress(qint64);
     void sendProgress(qint64);
     void newFileConnection();
@@ -73,12 +86,8 @@ protected:
     void incomingConnection(int descriptor);
 
 private:
-
-    FileSocket* fileSocket;
-    QThread* sendFileThread;
-    QThread* receiveFileThread;
-
-    FileInfo *sendFileInfo;
+    void clearSockets();
+    QHash<int, FileSocket*> descriptor2socket;
 
 };
 

@@ -41,6 +41,7 @@ extern QStringList networkcardList;
 extern QStringList ipList_Curr;
 extern QString secret;
 extern config *conf;
+extern const int TRANSFERTIMEOUT;
 extern const int FILESENDBUFFERSIZE;
 extern const int FILEBUFFERSIZE;
 

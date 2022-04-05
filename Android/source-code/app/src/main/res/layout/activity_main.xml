@@ -81,25 +81,25 @@ android:fillViewport="true">
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_height="30dp"
                                 android:orientation="horizontal"
                                 android:gravity="center">
 
                                 <com.sol.component.spinkit.SpinKitView
-                                        android:id="@+id/connnecting_ani"
-                                        style="@style/SpinKitView.Large.Wave"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_gravity="center"
-                                        android:visibility="gone"
-                                        app:SpinKit_Color="@color/colorBlue" />
-
+                                    android:id="@+id/connnecting_ani"
+                                    style="@style/SpinKitView.Large.Wave"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:visibility="gone"
+                                    app:SpinKit_Color="@color/colorBlue" />
 
                                 <ImageView
                                     android:id="@+id/ifConnectImageView"
                                     android:layout_width="24dp"
                                     android:layout_height="24dp"
                                     android:src="@drawable/ifconnect"/>
+
                                 <TextView
                                     android:id="@+id/ifConnectTextView"
                                     android:layout_width="wrap_content"
@@ -282,7 +282,8 @@ android:fillViewport="true">
                                              android:id="@+id/fileList"
                                              android:layout_width="match_parent"
                                              android:layout_height="wrap_content"
-                                             android:overScrollMode="never"/>
+                                             android:overScrollMode="never"
+                                             android:paddingBottom="20dp"/>
                                          <TextView
                                              android:id="@+id/noFileTextView"
                                              android:layout_width="match_parent"

@@ -39,7 +39,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sol.adapter.FileListAdapter;
-import com.sol.component.ArrowDownloadButton;
+import com.sol.component.FlikerProgressBar;
 import com.sol.component.PopupMenu;
 import com.sol.component.bottomFileOpDialog;
 import com.sol.component.spinkit.SpinKitView;
@@ -110,6 +110,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton fileTab;
 
 
+    public tcpFileConnectionChannel sendFileConnection;
+    public tcpFileConnectionChannel receiveFileConnection;
     //读、写线程
     private tcpConnectionReadChannelThread readChannelThread;
     private tcpConnectionWriteChannelThread writeChannelThread;
@@ -556,8 +558,9 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 isNotifySendFileRunning = true;
                 //显示进度对话框
-                FileProgressDialogThread fileProgressDialogThread = new FileProgressDialogThread(file_paths);
+                FileProgressDialogThread fileProgressDialogThread = new FileProgressDialogThread(null ,file_paths);
                 fileProgressDialogThread.start();
+
                 fileLoop:
                 for (int i = 0; i < file_paths.size(); i++) {
                     final String file_path = file_paths.get(i);
@@ -584,6 +587,7 @@ public class MainActivity extends AppCompatActivity {
                     //忙等待本文件发完
                     while (!ConnectionInfo.filesSendedSet.contains(file_path)) {
                         try {
+                            fileProgressDialogThread.setProgress(sendFileConnection == null ? 0 : sendFileConnection.progress);
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -615,17 +619,18 @@ public class MainActivity extends AppCompatActivity {
     public void receiveFile() {
 
         try {
-            tcpFileConnectionChannel.connectTo();
-            if (tcpFileConnectionChannel.establishFlag) {
-                new tcpFileConnectionReceiveChannelThread().start();
+            receiveFileConnection = new tcpFileConnectionReceiveChannelThread();
+            receiveFileConnection.connectTo();
+            if (receiveFileConnection.establishFlag) {
+                receiveFileConnection.start();
                 //显示进度对话框
                 CopyOnWriteArrayList<String> list = new CopyOnWriteArrayList<String>();
                 list.add(receiveFileInfo.get("fileName"));
-                new FileProgressDialogThread(list).start();
+                new FileProgressDialogThread(receiveFileConnection, list).start();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            tcpFileConnectionChannel.closeConnection();
+            receiveFileConnection.closeConnection();
         }
 
 
@@ -640,18 +645,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    tcpFileConnectionChannel.connectTo();
-                    if (tcpFileConnectionChannel.establishFlag) {
-                        new tcpFileConnectionSendChannelThread(filePath).start();
+                    sendFileConnection = new tcpFileConnectionSendChannelThread(filePath);
+                    sendFileConnection.connectTo();
+                    if (sendFileConnection.establishFlag) {
+                        sendFileConnection.start();
                     }
                 } catch (IOException e) {
                     toastOnUI("打开文件失败");
                     e.printStackTrace();
-                    tcpFileConnectionChannel.closeConnection();
+                    sendFileConnection.closeConnection();
                 } catch (Exception e) {
                     e.printStackTrace();
                     toastOnUI("无法连接至目标主机");
-                    tcpFileConnectionChannel.closeConnection();
+                    sendFileConnection.closeConnection();
                 }
             }
         }).start();
@@ -851,31 +857,31 @@ public class MainActivity extends AppCompatActivity {
 
     public View fileTransferProgressView;
     public AlertDialog fileTransferProgressDialog;
-    public ArrowDownloadButton file_progress_animation;
+    public FlikerProgressBar transfer_progress_bar;
     public TextView sendStatusTextView;
 
     public void fileDialogInit() {
         fileTransferProgressView = getLayoutInflater().inflate(R.layout.file_transfer_progress, null);
-        file_progress_animation = fileTransferProgressView.findViewById(R.id.arrow_download_button);
+        transfer_progress_bar = fileTransferProgressView.findViewById(R.id.transfer_progress_bar);
         sendStatusTextView = fileTransferProgressView.findViewById(R.id.sendStatusTextView);
         fileTransferProgressDialog = new AlertDialog.Builder(MainActivity.instance)
                 .setTitle("传输文件")
-                .setIcon(R.drawable.clip)
+                .setIcon(R.drawable.pigeon)
                 .setView(fileTransferProgressView)
-                .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        //取消传输
-                        fileTransferProgressExitFlag = true;
-                        tcpFileConnectionChannel.closeSocket();
-                    }
-                })
+                .setCancelable(false)
                 .setPositiveButton("取消传输", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface paramAnonymousDialogInterface,
                                         int paramAnonymousInt) {
                         //取消传输
                         fileTransferProgressExitFlag = true;
-                        tcpFileConnectionChannel.closeSocket();
+                        if (sendFileConnection != null){
+                            sendFileConnection.closeSocket();
+                            sendFileConnection.closeConnection();
+                        }
+                        if (receiveFileConnection != null){
+                            receiveFileConnection.closeSocket();
+                            receiveFileConnection.closeConnection();
+                        }
                     }
                 }).create();
 
@@ -1065,13 +1071,15 @@ public class MainActivity extends AppCompatActivity {
 
     public static boolean fileTransferProgressExitFlag = false;
     public static boolean nextFileFlag = false;
-
+    public static boolean firstTransfer = true;
     class FileProgressDialogThread extends Thread {
 
         CopyOnWriteArrayList<String> filePaths;
+        tcpFileConnectionChannel fileConnectionChannel;
+        float progress;
 
-
-        public FileProgressDialogThread(CopyOnWriteArrayList<String> filePaths) {
+        public FileProgressDialogThread(tcpFileConnectionChannel fileConnectionChannel,CopyOnWriteArrayList<String> filePaths) {
+            this.fileConnectionChannel = fileConnectionChannel;
             this.filePaths = filePaths;
         }
 
@@ -1079,25 +1087,36 @@ public class MainActivity extends AppCompatActivity {
             nextFileFlag = true;
         }
 
+        public void setProgress(float progress) {
+            this.progress = progress;
+        }
 
         @Override
         public void run() {
             fileTransferProgressExitFlag = false;
             System.out.println("显示文件传输对话框");
+            System.out.println("filePaths.size: " + filePaths.size());
+            for (String path: filePaths) {
+                System.out.println("传输文件：" + path);
+            }
             for (int i = 0; i < filePaths.size(); i++) {
                 @SuppressLint("DefaultLocale")
                 final String title = String.format("当前第%d个，总共%d个", i+1, filePaths.size());
                 final String msg = filePaths.get(i).substring(filePaths.get(i).lastIndexOf(File.separator) + 1);
+                final int idx = i;
+
                 //1.创建传输进度对话框
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         fileTransferProgressDialog.setTitle(title);
-                        file_progress_animation.reset();
                         fileTransferProgressDialog.show();
                         sendStatusTextView.setText("正在传输:" + msg);
                         fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("取消传输");
-                        file_progress_animation.startAnimating();
+                        if (!firstTransfer){
+                            transfer_progress_bar.reset();
+                        }
+                        firstTransfer = false;
                     }
                 });
                 nextFileFlag = false;
@@ -1105,11 +1124,14 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         Thread.sleep(100);
                         //2.如果进度有变化，则更新进度条
-                        if (tcpFileConnectionChannel.progress != file_progress_animation.getProgress())
+                        final float progress = fileConnectionChannel == null ? this.progress : fileConnectionChannel.progress;
+                        @SuppressLint("DefaultLocale")
+                        final float ui_progress = Float.parseFloat(String.format("%.2f", progress));
+                        if (ui_progress != transfer_progress_bar.getProgress())
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    file_progress_animation.setProgress(tcpFileConnectionChannel.progress);
+                                    transfer_progress_bar.setProgress(ui_progress);
                                 }
                             });
                     } catch (InterruptedException e) {
@@ -1127,6 +1149,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
+                System.out.println("tcpConnectionChannel.establishFlag: " + tcpConnectionChannel.establishFlag + "      "  + "!nextFileFlag: " + !nextFileFlag);
 
                 //3.结束进度条
                 runOnUiThread(new Runnable() {
@@ -1134,8 +1157,8 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         sendStatusTextView.setText("文件传输完成");
                         fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("确定");
-                        file_progress_animation.setProgress(100);
-                        tcpFileConnectionChannel.progress = 0.0f;
+                        transfer_progress_bar.setProgress(100);
+                        transfer_progress_bar.finishLoad();
                     }
                 });
 

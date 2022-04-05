@@ -38,7 +38,7 @@ public class tcpFileConnectionReceiveChannelThread extends tcpFileConnectionChan
                 byte[] bytes = new byte[FILERECEIVEBUFSIZE];
                 int length ;
                 int sum = 0;
-                while(true) { //每次处理至多 FILERECEIVEBUFSIZE 字节的数据,实际处理数据量取决于length
+                while(!cancel) { //每次处理至多 FILERECEIVEBUFSIZE 字节的数据,实际处理数据量取决于length
                     length = dis.read(bytes); if(length==-1) break;
                     byte[] newBytes = Arrays.copyOf(bytes,length);
                     sum+=length;

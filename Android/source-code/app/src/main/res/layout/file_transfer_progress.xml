@@ -2,16 +2,26 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:gravity="center">
+    android:gravity="center"
+    tools:context=".MainActivity">
 
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content">
+        <com.sol.component.FlikerProgressBar
+            android:id="@+id/transfer_progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:textSize="12sp"
+            app:loadingColor="#40c4ff"
+            app:stopColor="#23d96e"
+            app:radius="20dp"
+            />
+    </LinearLayout>
 
-    <com.sol.component.ArrowDownloadButton
-        android:id="@+id/arrow_download_button"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:keepScreenOn="true"
-        />
     <TextView
         android:id="@+id/sendStatusTextView"
         android:layout_width="wrap_content"

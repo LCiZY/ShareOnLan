@@ -43,6 +43,7 @@ void msgServer::socketDisconnect(){
         this->socket = nullptr;
         //清空文件接收队列
         receiveFilesQueue.clear();
+        sendFilesQueue.clear();
         //恢复监听
         resumeAccepting();
         //发送client改变消息

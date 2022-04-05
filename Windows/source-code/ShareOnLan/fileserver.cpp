@@ -1,23 +1,22 @@
 #include "fileserver.h"
 #include<exception>
 
-FileSocket::FileSocket(int socketdesc, QTcpSocket *){
-    this->setSocketDescriptor(socketdesc);
-}
 
 fileServer::fileServer()
 {
-    this->fileSocket = nullptr;
-    this->sendFileThread = nullptr;
-    this->receiveFileThread = nullptr;
-
     ifSend = false;
 }
 
 bool fileServer::ifConnected(){
+    bool rt = false;
+    QHashIterator<int, FileSocket*> iter(this->descriptor2socket);
+    while(iter.hasNext()) {
+        iter.next();
+        if(!iter.value()->isTransferDone())
+            rt = true;
 
-    return this->fileSocket!=nullptr;
-
+    }
+    return rt;
 }
 
 bool fileServer::listenOn(int port){
@@ -33,40 +32,50 @@ bool fileServer::listenOn(int port){
 
 }
 
+void fileServer::clearSockets(){
+    QHashIterator<int, FileSocket*> iter(this->descriptor2socket);
+    while(iter.hasNext()) {
+        iter.next();
+        if(!iter.value()->isTransferDone())
+            iter.value()->deleteLater();
+    }
+    this->descriptor2socket.clear();
+}
 
 
 //断开连接，关闭socket
 void fileServer::closeSocket(){
-    if(this->fileSocket!=nullptr){
-        this->fileSocket->close();
-        this->fileSocket->deleteLater();
-    }
+    clearSockets();
 }
 
 //服务停止，停止监听端口
 void fileServer::serverShutDown(){
-    if(this->fileSocket!=nullptr)this->fileSocket->close();
+    clearSockets();
     this->close();
 }
 
 
 void fileServer::incomingConnection(int descriptor){
 
-    if(this->fileSocket!=nullptr) { return; }
-    pauseAccepting();
+
     Log(tr("接收到文件传输连接:")+QString::number(descriptor));
-    this->fileSocket = new FileSocket(descriptor);
-    this->fileSocket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
-    connect(fileSocket,SIGNAL(fileTransferDone()),this,SIGNAL(fileTransferDone()));
-    connect(fileSocket,SIGNAL(currFileInfo(qint64,QString)),this,SIGNAL(currFileInfo(qint64,QString)));
-    connect(fileSocket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
+    FileSocket* socket = new FileSocket(descriptor);
+    socket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
+    connect(socket,SIGNAL(fileTransferDone()),this,SIGNAL(fileTransferDone()));
+    connect(socket,SIGNAL(currFileInfo(qint64,QString)),this,SIGNAL(currFileInfo(qint64,QString)));
+    connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
 
     if(ifSend){  //发送文件
-        sendFile(sendFileInfo);
+        socket->setFileInfo(sendFilesQueue.dequeue());
+        sendFile(socket);
         ifSend = false;
     }else{  //接收文件
-        receiveFile();
+        socket->setFileInfo(receiveFilesQueue.dequeue());
+        receiveFile(socket);
+        Log(tr("接收文件"));
     }
+
+    descriptor2socket[descriptor] = socket;
     //告知UI显示进度条界面
     emit newFileConnection();
 
@@ -75,9 +84,6 @@ void fileServer::incomingConnection(int descriptor){
 
 void fileServer::socketDisconnect(){
     Log(tr("文件传输连接关闭。"));
-
-    //恢复监听
-    resumeAccepting();
 }
 
 
@@ -91,23 +97,28 @@ void fileServer::socketDisconnect(){
 *
 */
 
-void fileServer::receiveFile(){
+void fileServer::receiveFile(FileSocket* socket){
     //设置准备接收文件的大小
-    if(receiveFilesQueue.size()==0) {Log("fileServer::receiveFile：未知的接收文件信息（1）"); this->fileSocket->close();return; }
-    //累积接收大小
-    receiveFileThread = new QThread();
+    if(socket->getFileInfo() == nullptr) { Log("fileServer::receiveFile：未知的接收文件信息（1）"); socket->close();return; }
+
+    QThread* receiveFileThread = new QThread();
     //连接数据到来时的槽函数
-    connect(fileSocket,SIGNAL(readyRead()),fileSocket,SLOT(receiveFile()));
+    connect(socket,SIGNAL(readyRead()),socket,SLOT(receiveFile()));
 
     //先将filesocket删除再退出线程（在线程的事件循环结束前调用filesocket的deletelater
-    connect(fileSocket,&FileSocket::disconnected,fileSocket,[=](){fileSocket->deleteLater();});
-    connect(fileSocket,&FileSocket::destroyed,[=](){ receiveFileThread->quit();receiveFileThread->deleteLater(); this->fileSocket = nullptr;this->receiveFileThread = nullptr; });
+   // connect(socket,&FileSocket::disconnected,socket,[=](){socket->deleteLater();});
+    connect(socket,&FileSocket::destroyed,[=](){
+                                                receiveFileThread->quit();
+                                                receiveFileThread->deleteLater();
+                                                if(receiveFilesQueue.isEmpty())
+                                                    emit fileTransferDone();
+                                               });
 
     //接收进度
-    connect(fileSocket,SIGNAL(readProgress(qint64)),this,SIGNAL(receiveProgress(qint64)));
+    connect(socket,SIGNAL(readProgress(qint64)),this,SIGNAL(receiveProgress(qint64)));
 
     //移动到子线程并开始
-    fileSocket->moveToThread(receiveFileThread);
+    socket->moveToThread(receiveFileThread);
     receiveFileThread->start();
 }
 
@@ -120,31 +131,69 @@ void fileServer::receiveFile(){
 *              4.发送文件
 *               5.关闭连接
 */
-void fileServer::sendFile(FileInfo* sendFileInfo){
+void fileServer::sendFile(FileSocket* socket){
 
-    sendFileThread = new QThread();
+    if(socket->getFileInfo() == nullptr) { Log("fileServer::sendFile：未知的接收文件信息（2）"); socket->close();return; }
+
+    QThread* sendFileThread = new QThread();
     //连接发送文件时的槽函数
-    connect(this,SIGNAL(fileSend(FileInfo*)),fileSocket,SLOT(sendFile(FileInfo*)));
+    connect(this,SIGNAL(fileSend()),socket,SLOT(sendFile()));
 
     //先将filesocket删除再退出线程（在线程的事件循环结束前调用filesocket的deletelater
-    connect(fileSocket,&FileSocket::disconnected,fileSocket,[=](){fileSocket->deleteLater();});
-    connect(fileSocket,&FileSocket::destroyed,[=](){ sendFileThread->quit();sendFileThread->deleteLater(); this->fileSocket = nullptr;this->sendFileThread = nullptr; });
+    //connect(fileSocket,&FileSocket::disconnected,fileSocket,[=](){fileSocket->deleteLater();});
+    connect(socket,&FileSocket::destroyed,[=](){
+        sendFileThread->quit();
+        sendFileThread->deleteLater();
+        if(sendFilesQueue.isEmpty())
+            emit fileTransferDone();
+    });
 
     //发送进度
-    connect(fileSocket,SIGNAL(bytesWritten(qint64)),this,SIGNAL(sendProgress(qint64)));
+    connect(socket,SIGNAL(bytesWritten(qint64)),this,SIGNAL(sendProgress(qint64)));
 
     //移动到子线程并开始
-    fileSocket->moveToThread(sendFileThread);
+    socket->moveToThread(sendFileThread);
     sendFileThread->start();
-    Sleep(10); emit fileSend(sendFileInfo);
+    Sleep(10); emit fileSend();
 
 }
 
 
 
-void FileSocket::sendFile(FileInfo* sendFileInfo){
 
-    QString fp = sendFileInfo->filePath;
+
+
+
+
+/*
+ *
+ *
+ *
+ *
+ * File Socket
+ *
+ *
+ *
+ *
+ */
+
+FileSocket::FileSocket(int socketdesc, QTcpSocket *){
+    this->setSocketDescriptor(socketdesc);
+    this->setFileInfo(nullptr);
+    transferDone = false;
+    detectConnectionTimerID = startTimer(1000);
+}
+
+
+FileSocket::~FileSocket(){
+    killTimer(this->detectConnectionTimerID);
+    delete this->fileInfo;
+}
+
+
+void FileSocket::sendFile(){
+
+    QString fp = this->getFileInfo()->filePath;
     QFile sendfile(fp);
     if(!sendfile.exists()){Log("FileSocket::sendFile：文件不存在。"); return;}
     if(!sendfile.open(QIODevice::ReadOnly)){
@@ -163,13 +212,15 @@ void FileSocket::sendFile(FileInfo* sendFileInfo){
         this->write(buf,length);
         count+=length;
         this->waitForBytesWritten();
+        lastTransferTime = clock();
     }
     delete buf;
 
     Log("文件发送完成，发送大小："+ QString::number(count));
     sendfile.close();
     this->close();
-
+    transferDone = true;
+    this->deleteLater();
     emit fileTransferDone();
 }
 
@@ -177,10 +228,8 @@ void FileSocket::sendFile(FileInfo* sendFileInfo){
 
 void FileSocket::receiveFile(){
 
-    if(receiveFilesQueue.size()==0){Log("fileServer::receiveFile：未知的接收文件信息（2）");this->close();return; }
 
-
-    FileInfo* fileInfo = receiveFilesQueue.head();
+    FileInfo* fileInfo = this->getFileInfo();
 
     QString fileSaveDir = conf->getConfig("fileReceiveLocation") == "" ? QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) : conf->getConfig("fileReceiveLocation");
 
@@ -194,16 +243,19 @@ void FileSocket::receiveFile(){
         emit currFileInfo(fileInfo->fileSize, fileInfo->fileName);
     }
 
+
     if(receivefile.open(fileInfo->resolveFileSize==0?QIODevice::WriteOnly:QIODevice::Append)){
 
         char *buf=new char[FILEBUFFERSIZE];
-        qint64 length=1;
+        qint64 length = 0;
 
         //耗时操作，接收文件
-        while ((length=this->read(buf,FILEBUFFERSIZE))!=-1&&length!=0) {
+        while ((length=this->read(buf,FILEBUFFERSIZE))!=-1 && length != 0) {
+            // qDebug() << "length1: " << length;
             receivefile.write(buf,length);
             fileInfo->resolveFileSize+=length;
             emit readProgress(length);
+            lastTransferTime = clock();
         }
         delete buf;
 
@@ -213,29 +265,46 @@ void FileSocket::receiveFile(){
         Log(tr("接收失败:文件打开失败"));
     }
 
-    //接收完成
+
     if(fileInfo->resolveFileSize >= fileInfo->fileSize) {
-        Log(tr("接收文件完成,接收大小:%1 文件保存位置:%2").arg(QString::number(fileInfo->resolveFileSize)).arg(userChooseFileName));
+        //接收完成
+        Log(tr("接收文件完成,接收大小:%1, 文件保存位置:%2").arg(QString::number(fileInfo->resolveFileSize)).arg(userChooseFileName));
+
         this->close();
-        if(!receiveFilesQueue.isEmpty()){
-            receiveFilesQueue.dequeue();
-            if(receiveFilesQueue.size()==0) emit fileTransferDone();
-        }
-        delete fileInfo;
+
+        transferDone = true;
+        this->deleteLater();
     }
 
 
-
 }
 
 
-void fileServer::setSendFileInfo(FileInfo* fileInfo){
-    this->sendFileInfo = fileInfo;
+void FileSocket::setFileInfo(FileInfo* fileInfo){
+     this->fileInfo = fileInfo;
+}
 
+FileInfo* FileSocket::getFileInfo(){
+    return this->fileInfo;
+}
+
+bool FileSocket::isTransferDone(){
+    return this->transferDone;
 }
 
 
-
+void FileSocket::timerEvent(QTimerEvent *event)
+{
+    if(event->timerId() == this->detectConnectionTimerID) {
+        if(clock() - lastTransferTime > TRANSFERTIMEOUT){
+             if(fileInfo != nullptr)
+                Log(tr("***接收文件失败***接收大小:%1, 实际大小: %2, 文件名称:%3").arg(QString::number(fileInfo->resolveFileSize)).arg(QString::number(fileInfo->fileSize)).arg(fileInfo->fileName));
+             emit fileTransferDone();
+             this->transferDone = true;
+             this->deleteLater();
+        }
+    }
+}
 
 
 

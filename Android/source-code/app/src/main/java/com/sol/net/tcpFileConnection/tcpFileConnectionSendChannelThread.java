@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class tcpFileConnectionSendChannelThread extends tcpFileConnectionChannel {
 
-    private String filePath;
+    private final String filePath;
     private FileInputStream fis;
 
     public tcpFileConnectionSendChannelThread(String filePath) {
@@ -28,7 +28,7 @@ public class tcpFileConnectionSendChannelThread extends tcpFileConnectionChannel
             byte[] bytes = new byte[FILESENDBUFSIZE];
             int length ,sum=0,i=0;
             System.out.println("开始传输，文件大小："+file.length());
-            while (-1!=(length = fis.read(bytes, 0, bytes.length))) { //每次发送至多FILESENDBUFSIZE字节的数据，实际发送数据取决于length
+            while (-1!=(length = fis.read(bytes, 0, bytes.length)) && !cancel) { //每次发送至多FILESENDBUFSIZE字节的数据，实际发送数据取决于length
                 out.write(bytes, 0, length);
                 out.flush();
                 sum+=length;

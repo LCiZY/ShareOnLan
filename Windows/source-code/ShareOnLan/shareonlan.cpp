@@ -289,7 +289,7 @@ void ShareOnLan::on_SendFile(){
     if(filePath == "") return;
 
     this->fileserver->ifSend = true;
-    this->fileserver->setSendFileInfo(buildFileInfo(filePath));
+    sendFilesQueue.push_back(buildFileInfo(filePath));
     Log(QString("发送文件：") + filePath);
     this->server->sendMsg(FILE_INFO_MSG_HEAD + getFileInfoMsg(filePath));
 }

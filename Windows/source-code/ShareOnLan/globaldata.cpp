@@ -13,6 +13,7 @@ QStringList networkcardList = QStringList();
 QStringList ipList_Curr = QStringList();
 QString secret="null";
 config *conf = new config();
+const int TRANSFERTIMEOUT = 5000; // ms
 const int FILESENDBUFFERSIZE = 40960;
 const int FILEBUFFERSIZE = 40960;
 
