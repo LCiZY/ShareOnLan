@@ -3,15 +3,14 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
-    android:background="@drawable/icon_popupwin_menu_bg"
+    android:background="@drawable/pop_menu_bg"
     android:orientation="vertical" >
     <LinearLayout
         android:id="@+id/ly_item1"
         android:layout_width="match_parent"
         android:layout_height="45dip"
         android:gravity="center_vertical"
-        android:orientation="horizontal" 
-        android:background="@drawable/bg_default_button_selector">
+        android:orientation="horizontal" >
 
         <TextView
             android:layout_width="wrap_content"
@@ -31,8 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="45dip"
         android:gravity="center_vertical"
-        android:orientation="horizontal" 
-        android:background="@drawable/bg_default_button_selector">
+        android:orientation="horizontal" >
 
 
         <TextView
@@ -52,8 +50,7 @@
         android:layout_width="match_parent"
         android:layout_height="45dip"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_default_button_selector" >
+        android:orientation="horizontal">
 
 
         <TextView
@@ -73,8 +70,7 @@
         android:layout_width="match_parent"
         android:layout_height="45dip"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_default_button_selector" >
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"

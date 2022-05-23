@@ -1,12 +1,10 @@
 package com.sol.net.tcpFileConnection;
 
 import com.sol.net.ConnectionInfo;
-import com.sol.util.UriUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URI;
 
 public class tcpFileConnectionSendChannelThread extends tcpFileConnectionChannel {
 

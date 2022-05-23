@@ -6,7 +6,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:gravity="center"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="@color/bgColor">
 
     <LinearLayout
         android:layout_width="300dp"
@@ -31,7 +32,7 @@
         android:paddingLeft="25dp"
         android:paddingRight="25dp"
         android:paddingEnd="25dp"
-        android:textColor="@color/colorGray"
+        android:textColor="@color/lightTextColor"
         />
 
 

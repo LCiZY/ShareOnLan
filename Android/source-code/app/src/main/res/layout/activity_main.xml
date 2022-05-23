@@ -142,6 +142,8 @@ android:fillViewport="true">
                                         android:layout_width="150dp"
                                         android:layout_height="50dp"
                                         android:id="@+id/edit_ip"
+                                        android:textColor="@color/lightTextColor"
+                                        android:theme="@style/MyEditText"
                                         />
                                 </LinearLayout>
 
@@ -165,7 +167,9 @@ android:fillViewport="true">
                                     <EditText
                                         android:layout_width="150dp"
                                         android:layout_height="50dp"
-                                        android:id="@+id/edit_port"/>
+                                        android:id="@+id/edit_port"
+                                        android:textColor="@color/lightTextColor"
+                                        android:theme="@style/MyEditText"/>
                                 </LinearLayout>
                             </LinearLayout>
 
@@ -201,123 +205,124 @@ android:fillViewport="true">
                             android:background="@color/transparent"
                             >
 
-                        <LinearLayout
-                            android:id="@+id/pages"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal"
-                            android:background="@color/transparent"
-                            >
-
-
-
                             <LinearLayout
+                                android:id="@+id/pages"
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
-                                android:orientation="vertical"
-                                android:gravity="center"
-                                android:id="@+id/page1"
+                                android:orientation="horizontal"
                                 android:background="@color/transparent"
                                 >
-                                    <LinearLayout
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="horizontal"
-                                        android:gravity="center"
-                                        android:background="@color/transparent">
-                                        <!--发送按钮-->
-                                        <Button
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:id="@+id/sendBtn"
-                                            android:text="   发送文本   "
-                                            android:onClick="onSendBtnClicked"
-                                            android:textColor="@color/colorWhite"
-                                            android:background="@drawable/shape"
-                                            />
-                                        <Button
-                                            android:layout_marginLeft="10dp"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:id="@+id/sendFileBtn"
-                                            android:text="   发送文件   "
-                                            android:onClick="onSendFileBtnClicked"
-                                            android:textColor="@color/colorWhite"
-                                            android:background="@drawable/shape"
-                                            android:layout_marginStart="10dp" />
-
-                                    </LinearLayout>
-
-
-                                    <CheckBox
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:id="@+id/checkBox_ifEnableAutoSend"
-                                        android:text="开启剪贴板检测并自动发送"
-                                        android:textColor="@color/lightlightTextColor"
-                                        android:onClick="enableAutoSend"
-                                        />
 
 
 
                                 <LinearLayout
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:background="@color/transparent">
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:textColor="@color/colorGray"
-                                        android:text="连接密钥："/>
-                                    <TextView
-                                        android:id="@+id/secret"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:textColor="@color/colorGray"
-                                        android:textIsSelectable="true"/>
-                                </LinearLayout>
-
-
-                            </LinearLayout>
-
-                             <LinearLayout
-                                    android:layout_width="wrap_content"
                                     android:layout_height="match_parent"
                                     android:orientation="vertical"
                                     android:gravity="center"
-                                    android:id="@+id/page2"
-                                    android:background="@color/transparent">
+                                    android:id="@+id/page1"
+                                    android:background="@color/transparent"
+                                    >
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal"
+                                            android:gravity="center"
+                                            android:background="@color/transparent">
+                                            <!--发送按钮-->
+                                            <Button
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:id="@+id/sendBtn"
+                                                android:text="   发送文本   "
+                                                android:onClick="onSendBtnClicked"
+                                                android:textColor="@color/colorWhite"
+                                                android:background="@drawable/shape"
+                                                />
+                                            <Button
+                                                android:layout_marginLeft="10dp"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:id="@+id/sendFileBtn"
+                                                android:text="   发送文件   "
+                                                android:onClick="onSendFileBtnClicked"
+                                                android:textColor="@color/colorWhite"
+                                                android:background="@drawable/shape"
+                                                android:layout_marginStart="10dp" />
 
-                                 <com.sol.component.circlerefresh.CircleRefreshLayout
-                                     app:AniBackColor="@color/bgColor"
-                                     app:AniForeColor="@color/colorPrimary"
-                                     app:CircleSmaller="6"
-                                     android:id="@+id/refresh_layout"
-                                     android:layout_width="match_parent"
-                                     android:layout_height="match_parent">
-                                         <ListView
-                                             android:background="@color/transparent"
-                                             android:id="@+id/fileList"
-                                             android:layout_width="match_parent"
-                                             android:layout_height="wrap_content"
-                                             android:overScrollMode="never"
-                                             android:paddingBottom="20dp"/>
-                                         <TextView
-                                             android:id="@+id/noFileTextView"
-                                             android:layout_width="match_parent"
-                                             android:layout_height="match_parent"
-                                             android:textAlignment="center"
-                                             android:text="@string/noReceivedFile"
-                                             android:textColor="@color/lightTextColor"
-                                             android:gravity="center" />
+                                        </LinearLayout>
 
 
-                                 </com.sol.component.circlerefresh.CircleRefreshLayout>
+                                        <CheckBox
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:id="@+id/checkBox_ifEnableAutoSend"
+                                            android:text="开启剪贴板检测并自动发送"
+                                            android:textColor="@color/lightlightTextColor"
+                                            android:onClick="enableAutoSend"
+                                            android:buttonTint="@color/lightlightTextColor"
+                                            />
 
-                             </LinearLayout>
 
-                        </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:background="@color/transparent">
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textColor="@color/colorGray"
+                                            android:text="连接密钥："/>
+                                        <TextView
+                                            android:id="@+id/secret"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:textColor="@color/colorGray"
+                                            android:textIsSelectable="true"/>
+                                    </LinearLayout>
+
+
+                                </LinearLayout>
+
+                                 <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="match_parent"
+                                        android:orientation="vertical"
+                                        android:gravity="center"
+                                        android:id="@+id/page2"
+                                        android:background="@color/transparent">
+
+                                     <com.sol.component.circlerefresh.CircleRefreshLayout
+                                         app:AniBackColor="@color/bgColor"
+                                         app:AniForeColor="@color/colorPrimary"
+                                         app:CircleSmaller="6"
+                                         android:id="@+id/refresh_layout"
+                                         android:layout_width="match_parent"
+                                         android:layout_height="match_parent">
+                                             <ListView
+                                                 android:background="@color/transparent"
+                                                 android:id="@+id/fileList"
+                                                 android:layout_width="match_parent"
+                                                 android:layout_height="wrap_content"
+                                                 android:overScrollMode="never"
+                                                 android:paddingBottom="20dp"/>
+                                             <TextView
+                                                 android:id="@+id/noFileTextView"
+                                                 android:layout_width="match_parent"
+                                                 android:layout_height="match_parent"
+                                                 android:textAlignment="center"
+                                                 android:text="@string/noReceivedFile"
+                                                 android:textColor="@color/lightTextColor"
+                                                 android:gravity="center" />
+
+
+                                     </com.sol.component.circlerefresh.CircleRefreshLayout>
+
+                                 </LinearLayout>
+
+                            </LinearLayout>
 
 
 

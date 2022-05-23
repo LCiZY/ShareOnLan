@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -61,6 +63,7 @@ import com.sol.net.tcpFileConnection.tcpFileConnectionSendChannelThread;
 import com.sol.util.CheckArgumentUtil;
 import com.sol.util.FileUtils;
 import com.sol.util.ToastUtils;
+import com.sol.util.UIUtils;
 import com.sol.util.getSystemInfo;
 import com.sol.util.utils;
 
@@ -297,13 +300,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onSendFileBtnClicked(View view) {
-        new AlertDialog.Builder(this)
+        final AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle("发送文件至电脑")
                 .setIcon(R.drawable.fly)
                 .setView(R.layout.send_file_specification)
-                .setPositiveButton("确定", null)
-                .create()
-                .show();
+                .create();
+        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
+        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE,"确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        alertDialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+        UIUtils.setDialogTitleColor(alertDialog, getResources().getColor(R.color.textColor));
+
     }
 
 
@@ -472,28 +483,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
-
-
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static String[] PERMISSIONS_STORAGE = {
-            "android.permission.READ_EXTERNAL_STORAGE",
-            "android.permission.WRITE_EXTERNAL_STORAGE"};
-
-    public static void verifyStoragePermissions(Activity activity) {
-
-        try {
-            //检测是否有写的权限
-            int permission = ActivityCompat.checkSelfPermission(activity,
-                    "android.permission.WRITE_EXTERNAL_STORAGE");
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                // 没有写的权限，去申请写的权限，会弹出对话框
-                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public static final int REQUEST_CODE_ON_CREATE_REQUEST_PERMISSIONS = 100;
 
@@ -741,7 +730,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void UIInit() {
 
-        this.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        if(this.getApplicationContext().getResources().getConfiguration().uiMode == 0x21){//深色0x21
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                getWindow().setAttributes(lp);
+            }
+        }else{ //浅色0x11
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                this.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+        }
 
 
         //两个滑动页面初始化
@@ -879,7 +880,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //初始化右上角菜单点击“剪贴记录”后的弹窗
-    AlertDialog alertDialog;
+    AlertDialog historyAlertDialog;
     View view;
     ListView hisListView;
     ArrayAdapter<String> adapter;
@@ -895,7 +896,7 @@ public class MainActivity extends AppCompatActivity {
         };
         view = getLayoutInflater().inflate(R.layout.popup_menu_window, null);
 
-        alertDialog = new AlertDialog.Builder(MainActivity.this)
+        historyAlertDialog = new AlertDialog.Builder(MainActivity.this)
                 .setTitle("剪贴板历史记录")
                 .setIcon(R.drawable.clip)
                 .setView(view)
@@ -904,8 +905,9 @@ public class MainActivity extends AppCompatActivity {
                                         int paramAnonymousInt) {
                     }
                 }).create();
+        historyAlertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
         hisListView = view.findViewById(R.id.hisListView);
-        adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, clipDatas);
+        adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, clipDatas);
 
         hisListView.setAdapter(adapter);
         hisListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -949,6 +951,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }).create();
+        fileTransferProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
 
     }
 
@@ -1045,7 +1048,8 @@ public class MainActivity extends AppCompatActivity {
                         toastOnUI("重置成功~");
                     } else if (PopupMenu.MENUITEM.CLIPHISTORY == item) {
                         handler.sendEmptyMessageDelayed(100, 1000);
-                        alertDialog.show();
+                        historyAlertDialog.show();
+                        UIUtils.setDialogTitleColor(historyAlertDialog, getResources().getColor(R.color.textColor));
                     } else if (PopupMenu.MENUITEM.DETELEALL == item) {
 
                         new android.app.AlertDialog.Builder(MainActivity.this)
@@ -1065,13 +1069,16 @@ public class MainActivity extends AppCompatActivity {
 
 
                     }else if (PopupMenu.MENUITEM.SPECIFICATION == item) {
-                        new AlertDialog.Builder(MainActivity.this)
+                        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
                                 .setTitle(getString(R.string.useSpecificationTitle))
                                 .setIcon(R.drawable.specification)
                                 .setView(R.layout.use_specification)
                                 .setPositiveButton("确定", null)
-                                .create()
-                                .show();
+                                .create();
+                        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
+                        alertDialog.show();
+                        UIUtils.setDialogTitleColor(alertDialog, getResources().getColor(R.color.textColor));
+
                     }
 
                 }
@@ -1127,9 +1134,13 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_MOVE:
                     if (currTab == 1){
-                        if (Math.abs(event.getY() - startYPosition) > Math.abs(event.getX() - startXPosition))
+                        if (Math.abs(event.getY() - startYPosition) > Math.abs(event.getX() - startXPosition)){
                             mRefreshLayout.onTouchEvent(event);
+                            mRefreshLayout.requestDisallowInterceptTouchEvent(true);
+                            return true;
+                        }
                     }
+                    mRefreshLayout.requestDisallowInterceptTouchEvent(false);
                     return false;
                 default:
                     break;
@@ -1184,6 +1195,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         fileTransferProgressDialog.setTitle(title);
                         fileTransferProgressDialog.show();
+                        UIUtils.setDialogTitleColor(fileTransferProgressDialog, getResources().getColor(R.color.textColor));
                         sendStatusTextView.setText("正在传输:" + msg);
                         fileTransferProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText("取消传输");
                         if (!firstTransfer){

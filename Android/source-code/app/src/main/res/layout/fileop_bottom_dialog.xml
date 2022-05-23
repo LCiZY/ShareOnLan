@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="打开"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/lightlightTextColor"
             />
         </LinearLayout>
         <LinearLayout
@@ -94,7 +94,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="分享"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/lightlightTextColor"
             />
         </LinearLayout>
 

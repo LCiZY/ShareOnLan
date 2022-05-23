@@ -27,4 +27,7 @@
 
     <color name="center_btn_border_color">#172B4D</color>
 
+    <color name="bottomTabBar">#fff</color>
+
+
 </resources>

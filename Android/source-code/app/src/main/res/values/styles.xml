@@ -8,6 +8,11 @@
         <item name="colorAccent">@color/colorBlue</item>
     </style>
 
+    <style name="MyEditText" parent="AppTheme">
+        <item name="colorControlNormal">@color/textColor</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>
+    </style>
+
     <style name="SpinKitView">
         <item name="android:indeterminateOnly">true</item>
         <item name="android:minWidth">48dip</item>
