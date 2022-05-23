@@ -1,12 +1,19 @@
 package com.sol.net;
 
 
+import android.content.Context;
+
 import static com.sol.MainActivity.handler;
 
 public class tcpConnectionWriteChannelThread extends tcpConnectionChannel {
 
 
     String msg = "";
+    private Context ctx;
+
+    public tcpConnectionWriteChannelThread(Context context){
+        ctx = context;
+    }
 
     public void setMsg(String msg){
         this.msg = msg==null?"":msg;

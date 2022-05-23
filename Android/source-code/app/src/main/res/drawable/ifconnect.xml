@@ -5,7 +5,7 @@
         android:maxLevel="0"/>
 
     <item
-        android:drawable="@drawable/correct"
+        android:drawable="@drawable/icon_check"
         android:maxLevel="1"/>
 
 

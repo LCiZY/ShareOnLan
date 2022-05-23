@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="bgColor">#1c1c1c</color>
+    <color name="lightlightTextColor">#FFFFFF</color>
+    <color name="lightTextColor">#EAEAEA</color>
+    <color name="textColor">#DCDCDC</color>
+
+    <color name="title_bar_item_stroke_color">#EAEAEA</color>
+    <color name="title_bar_item_fill_color">#EAEAEA</color>
+
+    <color name="center_btn_border_color">#aeaeae</color>
+
+
+</resources>

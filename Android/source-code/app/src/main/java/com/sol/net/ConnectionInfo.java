@@ -1,6 +1,8 @@
 package com.sol.net;
 
 
+import android.net.Uri;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,7 +22,7 @@ public class ConnectionInfo {
     public static HashMap<String,String> receiveFileInfo = new HashMap<>();
 
 
-    public static CopyOnWriteArrayList<String> filesSendingQueue = new  CopyOnWriteArrayList<>(); // 文件发送队列
+    public static CopyOnWriteArrayList<Uri> filesSendingQueue = new  CopyOnWriteArrayList<>(); // 文件发送队列
     public static String sendFileName; // 当前发送的文件名
     public static HashSet<String> filesSendedSet = new HashSet<>(); // 文件路径映射到是否已发送
 

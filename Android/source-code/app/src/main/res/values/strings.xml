@@ -7,6 +7,10 @@
 
     <string name="noReceivedFile">还没有接收到任何文件哦~</string>
 
+    <string name="text_permissions_granted">授权成功。</string>
+    <string name="text_no_permissions">授权失败，应用在没有获得读写文件的权限时无法运行，程序退出。</string>
+
+
     <string name="way1">方式一：在已连接状态下，将其他应用内的文件通过本应用发送至电脑(此处以微信为例)</string>
     <string name="way1step1">步骤一：点击右上角按钮</string>
     <string name="way1step2">步骤二：选择用其他应用打开</string>

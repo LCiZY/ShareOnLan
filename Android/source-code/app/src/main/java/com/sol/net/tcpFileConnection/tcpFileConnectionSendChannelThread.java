@@ -1,10 +1,12 @@
 package com.sol.net.tcpFileConnection;
 
 import com.sol.net.ConnectionInfo;
+import com.sol.util.UriUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 
 public class tcpFileConnectionSendChannelThread extends tcpFileConnectionChannel {
 
@@ -40,6 +42,7 @@ public class tcpFileConnectionSendChannelThread extends tcpFileConnectionChannel
             System.out.println("!!文件传输失败!!");
         }finally {
             try {
+                Thread.sleep(1000);
                 fis.close(); //closeConnection();
             }catch (Exception e){}
             synchronized (ConnectionInfo.class) {

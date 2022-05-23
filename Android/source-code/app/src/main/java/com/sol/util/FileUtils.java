@@ -1,9 +1,5 @@
 package com.sol.util;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +10,9 @@ import android.util.Log;
 
 import androidx.core.content.FileProvider;
 
-import com.sol.MainActivity;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileUtils {
     private FileUtils() {
@@ -80,7 +78,7 @@ public class FileUtils {
         try{
             if (null != file && file.exists()) {
                 Intent share = new Intent(Intent.ACTION_SEND);
-                Uri fileUri = FileProvider.getUriForFile(MainActivity.instance.getApplicationContext(), "com.sol.fileprovider", file);
+                Uri fileUri = FileProvider.getUriForFile(context, "com.sol.fileprovider", file);
                 share.putExtra(Intent.EXTRA_STREAM, fileUri);
                 share.setType(getMIMEType(file.getAbsolutePath()));//此处可发送多种文件
                 share.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -91,8 +89,7 @@ public class FileUtils {
                 System.out.println("分享文件不存在");
             }
         }catch (Exception e){
-            if(MainActivity.instance!=null)
-            MainActivity.instance.toastOnUI("分享文件失败");
+            ToastUtils.showToast(context, "分享文件失败");
         }
     }
 
@@ -100,7 +97,7 @@ public class FileUtils {
     public static void openFile(Context context,File file) {
         try {
             if(null!=file&&file.exists()) {
-                Uri fileUri = FileProvider.getUriForFile(MainActivity.instance.getApplicationContext(), "com.sol.fileprovider", file);
+                Uri fileUri = FileProvider.getUriForFile(context, "com.sol.fileprovider", file);
                 //Uri uri = Uri.parse("file://"+file.getAbsolutePath());
                 Intent intent = new Intent();
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -116,8 +113,7 @@ public class FileUtils {
                 context.startActivity(intent);
             }
         }catch (Exception e){
-            if(MainActivity.instance!=null)
-            MainActivity.instance.toastOnUI("打开文件失败");
+            ToastUtils.showToast(context, "打开文件失败");
         }
 
     }
@@ -141,7 +137,7 @@ public class FileUtils {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        Uri fileUri = FileProvider.getUriForFile(MainActivity.instance.getApplicationContext(), "com.sol.fileprovider", file);
+        Uri fileUri = FileProvider.getUriForFile(context, "com.sol.fileprovider", file);
         intent.setDataAndType(fileUri, "*/*");
         grantUriPermission(context,fileUri,intent);
         try {

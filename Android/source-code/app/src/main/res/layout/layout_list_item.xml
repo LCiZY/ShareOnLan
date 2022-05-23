@@ -15,7 +15,7 @@
         android:layout_height="50dp"
         android:src="@drawable/file_items"
         android:scaleType="centerInside"
-        android:background="@color/colorWhite"
+        android:background="@color/transparent"
         android:padding="8dp"
         />
 
@@ -28,6 +28,7 @@
             android:id="@+id/itemTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@color/lightTextColor"
             android:text="fileName"
             android:textSize="16dp"/>
         <TextView
@@ -35,6 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:textColor="@color/colorGray"
             android:text="lastModifiedTime:2019-2-23"
             android:textSize="12dp"/>
 

@@ -1,12 +1,12 @@
 package com.sol.component;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
@@ -16,9 +16,9 @@ import android.widget.TextView;
 import com.sol.MainActivity;
 import com.sol.R;
 import com.sol.util.FileUtils;
+import com.sol.util.ToastUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 public class bottomFileOpDialog {
 
@@ -35,6 +35,7 @@ public class bottomFileOpDialog {
     private LinearLayout shareLayout;
     public Dialog dialog;
 
+    @SuppressLint("ClickableViewAccessibility")
     public  void onDialog()
     {
         dialog=new Dialog(context);//可以在style中设定dialog的样式
@@ -46,9 +47,9 @@ public class bottomFileOpDialog {
         shareLayout = dialog.findViewById(R.id.share);
 
         bottomDialogFileNameTextView.setText(file.getName());
-        deleteFileBtn.setOnTouchListener(new deleteFileTabListener());
-        openLayout.setOnTouchListener(new openFileTabListener());
-        shareLayout.setOnTouchListener(new shareFileTabListener());
+        deleteFileBtn.setOnTouchListener(new deleteFileTabListener(context));
+        openLayout.setOnTouchListener(new openFileTabListener(context));
+        shareLayout.setOnTouchListener(new shareFileTabListener(context));
 
         WindowManager.LayoutParams lp=dialog.getWindow().getAttributes();
         lp.gravity= Gravity.BOTTOM;
@@ -104,13 +105,18 @@ public class bottomFileOpDialog {
 
     class deleteFileTabListener implements View.OnTouchListener{
 
+        private Context ctx;
+        public deleteFileTabListener(Context context){
+            ctx = context;
+        }
+
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             //调用其他应用打开文件
             try{
                 final String filename = file.getName();
                 if(file.delete()){ //删除成功
-                    MainActivity.instance.toastOnUI("删除成功~");
+                    ToastUtils.showToast(ctx,"删除成功!");
                     new Thread(MainActivity.listViewRunnable).start();
                     dialog.dismiss();
                     return true;
@@ -119,29 +125,35 @@ public class bottomFileOpDialog {
 
             }
             //删除失败
-            MainActivity.instance.toastOnUI("文件删除失败");
+            ToastUtils.showToast(ctx, "文件删除失败");
             return true;
         }
     }
 
 
     class openFileTabListener implements View.OnTouchListener{
-
+        private Context ctx;
+        public openFileTabListener(Context context){
+            ctx = context;
+        }
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             //调用其他应用打开文件
-            FileUtils.openFile(context,file);
+            FileUtils.openFile(ctx,file);
             dialog.dismiss();
             return true;
         }
     }
 
     class shareFileTabListener implements View.OnTouchListener{
-
+        private Context ctx;
+        public shareFileTabListener(Context context){
+            ctx = context;
+        }
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             //分享至其他应用
-            FileUtils.shareFile(context,file);
+            FileUtils.shareFile(ctx,file);
             dialog.dismiss();
             return true;
         }

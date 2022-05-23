@@ -230,7 +230,12 @@ void ShareOnLan::clientChange(){
     //托盘tooltip改变
     sysTrayTextChange();
     //如果控制连接断开：进度条页面存在则关闭； 关闭filesocket
-    if(!server->ifConnected()) { if(this->progressui!=nullptr) progressUIDestroy(); fileserver->closeSocket();  }
+    if(!server->ifConnected()) {
+        if(this->progressui!=nullptr) {
+            progressUIDestroy();
+        }
+        fileserver->closeSocket();
+    }
 }
 
 void ShareOnLan::ipChange(){

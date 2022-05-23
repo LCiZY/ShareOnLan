@@ -1,15 +1,13 @@
 package com.sol.config;
 
-import android.os.Environment;
+import android.content.Context;
 
-import com.sol.MainActivity;
 import com.sol.util.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-
 import java.util.HashMap;
 
 public class Config {
@@ -24,9 +22,9 @@ public class Config {
 
 
     public static  String RECEIVEFILEDIRETORY ;
-    public static void conFigInit(){
+    public static void conFigInit(Context context){
 
-        varInit();
+        varInit(context);
 
         initDuringFirstLaunch();
 
@@ -35,13 +33,13 @@ public class Config {
 
     }
 
-    public static void varInit(){
+    public static void varInit(Context context){
         ROOTDIROTERYNAME = "ShareOnLan";
         RECEIVEDIROTERYNAME = "ReceiveFiles";
         CONFIGFILENAME = "config.ini";
-        APPROOTDIR = MainActivity.instance.getExternalFilesDir(null).getPath() + File.separator + ROOTDIROTERYNAME;
-        System.out.println("文件路径-------------------------------");
-        System.out.println(MainActivity.instance.getExternalFilesDir(null).getPath() );
+        APPROOTDIR = context.getExternalFilesDir(null).getPath() + File.separator + ROOTDIROTERYNAME;
+        System.out.println("配置文件路径-------------------------------");
+        System.out.println(context.getExternalFilesDir(null).getPath() );
         TODIRRETORY = APPROOTDIR+File.separator ;
         RECEIVEFILEDIRETORY = TODIRRETORY+"ReceiveFiles"+File.separator;
     }

@@ -10,8 +10,10 @@ public class DetectThread extends Thread{
     private boolean ifFirstLoop = true;
 
     public static boolean detectFlag = true;
-    public DetectThread(){
 
+    private MainActivity mainActivity;
+    public DetectThread(MainActivity mainActivity){
+        this.mainActivity = mainActivity;
     }
 
     @Override
@@ -25,12 +27,11 @@ public class DetectThread extends Thread{
                       Looper.prepare(); ifFirstLoop = false;
                 }
 
-                if(MainActivity.instance==null) {
+                if(mainActivity==null) {
                     DetectThread.detectFlag = false;
-                    System.out.println("-----------------------------MainActivity.instance为null！！！");
                     continue;
                 }
-                MainActivity.instance.ConnectionInit(null, null, null);
+                mainActivity.ConnectionInit(null, null, null);
 
             }
 

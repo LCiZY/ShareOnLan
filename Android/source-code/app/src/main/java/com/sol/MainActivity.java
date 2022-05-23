@@ -1,18 +1,15 @@
 package com.sol;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -25,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -38,10 +36,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.sol.adapter.FileListAdapter;
 import com.sol.component.FlikerProgressBar;
 import com.sol.component.PopupMenu;
 import com.sol.component.bottomFileOpDialog;
+import com.sol.component.circlerefresh.CircleRefreshLayout;
 import com.sol.component.spinkit.SpinKitView;
 import com.sol.config.Config;
 import com.sol.control.DetectThread;
@@ -55,19 +60,15 @@ import com.sol.net.tcpFileConnection.tcpFileConnectionReceiveChannelThread;
 import com.sol.net.tcpFileConnection.tcpFileConnectionSendChannelThread;
 import com.sol.util.CheckArgumentUtil;
 import com.sol.util.FileUtils;
-import com.sol.util.JxdUtils;
+import com.sol.util.ToastUtils;
 import com.sol.util.getSystemInfo;
 import com.sol.util.utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import com.sol.component.circlerefresh.CircleRefreshLayout;
 
 import static com.sol.net.ConnectionInfo.clipDatas;
 import static com.sol.net.ConnectionInfo.receiveFileInfo;
@@ -75,9 +76,7 @@ import static com.sol.net.ConnectionInfo.receiveFileInfo;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static MainActivity instance = null;
-    public static Context context = null;
-
+    private static final String TAG = "MainActivity";
 
     public static ClipboardManager clipboard;
     public static boolean ifClipChangedSend = true, if_shield_clip_detect = false;
@@ -140,20 +139,19 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        instance = this;
-        context = getApplicationContext();
-        Config.conFigInit();
+        Config.conFigInit(this);
 
         System.out.println("------------------------------");
         System.out.println(this.getFilesDir().getAbsolutePath());
-
         System.out.println("------------------------------");
 
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
         //请求储存权限
-        verifyStoragePermissions(MainActivity.this);
+//        verifyStoragePermissions(MainActivity.this);
+        requestReadWriteFilePermissions();
+
         //得到剪贴板
         clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
         //得到设备信息：如宽高
@@ -217,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         toastOnUI("网络异常：未连接至PC");
                     }
-                }, new DetectThread());
+                }, new DetectThread(MainActivity.this));
             }
         }).start();
 
@@ -246,16 +244,34 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    private float startX,startY;
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            startX = ev.getX();
+            startY = ev.getY();
             if (pagesListener != null)
                 setMotionEventX(pagesListener, ev.getX());
+            if (edit_ip != null && edit_port != null){
+                if (edit_ip.hasFocus()) closeInputMethod(edit_ip);
+                if (edit_port.hasFocus()) closeInputMethod(edit_port);
+            }
         }
         return super.dispatchTouchEvent(ev);
     }
 
+    private boolean closeInputMethod(EditText editText) {
+        editText.clearFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        boolean isOpen = imm.isActive();
+        if (isOpen) {
+            // imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);//没有显示则显示
+            imm.hideSoftInputFromWindow(editText.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
+        return isOpen;
+    }
 
     //点击发送按钮
     public void onSendBtnClicked(View view) {
@@ -281,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onSendFileBtnClicked(View view) {
-        new AlertDialog.Builder(MainActivity.instance)
+        new AlertDialog.Builder(this)
                 .setTitle("发送文件至电脑")
                 .setIcon(R.drawable.fly)
                 .setView(R.layout.send_file_specification)
@@ -308,7 +324,6 @@ public class MainActivity extends AppCompatActivity {
 
     static int incorrectTimes = 0;
     private boolean ifEditBoxIpPortValidate() {
-        if (instance == null) return false;
         //检查IP和端口号
         if (!CheckArgumentUtil.checkIfIpValidate(serverIp) || serverPort < 1025 || serverPort > 65533) {
             if (incorrectTimes++ % 20 == 0)
@@ -327,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
             toastOnUI("连接已关闭");
         } else {
             DetectThread.detectFlag = true;
-            detectThread = new DetectThread();
+            detectThread = new DetectThread(this);
             detectThread.start();
             toastOnUI("尝试连接至目标主机...");
         }
@@ -359,15 +374,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void tryConnect(String ip, int port) {
-        if (instance == null) return;
         try {
             tcpConnectionChannel.connectTo(ip, port);
             if (tcpConnectionChannel.establishFlag) {
-                instance.readChannelThread = new tcpConnectionReadChannelThread(uiThread);
-                instance.readChannelThread.start();
+                readChannelThread = new tcpConnectionReadChannelThread(this, uiThread, MainActivity.this);
+                readChannelThread.start();
                 tcpConnectionChannel.r_runFlag = true;
-                instance.writeChannelThread = new tcpConnectionWriteChannelThread();
-                instance.writeChannelThread.start();
+                writeChannelThread = new tcpConnectionWriteChannelThread(this);
+                writeChannelThread.start();
                 tcpConnectionChannel.w_runFlag = true;
             }
         } catch (SocketTimeoutException e) {
@@ -480,6 +494,58 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    public static final int REQUEST_CODE_ON_CREATE_REQUEST_PERMISSIONS = 100;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean granted = true;
+        int i = 0;
+        for (int grantResult : grantResults) {
+            if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                granted = false;
+                System.out.println("permission:" + permissions[i] + "   没有授权:" + grantResult);
+                break;
+            }
+            i++;
+        }
+        if (granted) {
+            ToastUtils.showToast(this, getString(R.string.text_permissions_granted));
+            if (requestCode == REQUEST_CODE_ON_CREATE_REQUEST_PERMISSIONS){
+
+            }
+        } else {
+            if (requestCode == REQUEST_CODE_ON_CREATE_REQUEST_PERMISSIONS) {
+                ToastUtils.showToast(this, getString(R.string.text_no_permissions));
+                finish();
+            }
+        }
+    }
+
+    private boolean requestReadWriteFilePermissions() {
+        String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        }
+        return myRequestPermissions(this, permissions, REQUEST_CODE_ON_CREATE_REQUEST_PERMISSIONS);
+    }
+
+    public static boolean myRequestPermissions(Activity activity, String[] permissions, int requestCode) {
+        if (permissions == null || permissions.length == 0) return true;
+        boolean granted = true;
+        for (String s : permissions) {
+            if (ContextCompat.checkSelfPermission(activity, s) != PackageManager.PERMISSION_GRANTED) {
+                granted = false;
+            }
+        }
+        if (!granted) //没权限则发起请求
+            ActivityCompat.requestPermissions(activity, permissions, requestCode);
+        return granted;
+    }
+
+
     public void getServiceInfo() {
         DisplayMetrics outMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
@@ -509,9 +575,8 @@ public class MainActivity extends AppCompatActivity {
             if (uri == null) return;
             System.out.println("单个文件打开");
             if (TextUtils.equals(uri.getScheme(), "file") || TextUtils.equals(uri.getScheme(), "content")) {
-                String filePath = JxdUtils.getPath(this.getApplicationContext(), uri);
-                if (ConnectionInfo.filesSendingQueue.contains(filePath)) return;
-                ConnectionInfo.filesSendingQueue.add(filePath);
+                if (ConnectionInfo.filesSendingQueue.contains(uri)) return;
+                ConnectionInfo.filesSendingQueue.add(uri);
 
             }
         } else if (Intent.ACTION_SEND.equals(action) && type != null) {
@@ -519,21 +584,18 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
             System.out.println("单个文件发送");
             if (uri == null) return;
-            String filePath = JxdUtils.getPath(this.getApplicationContext(), uri);
-            if (ConnectionInfo.filesSendingQueue.contains(filePath)) return;
-            ConnectionInfo.filesSendingQueue.add(filePath);
-
+            if (ConnectionInfo.filesSendingQueue.contains(uri)) return;
+            ConnectionInfo.filesSendingQueue.add(uri);
         } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
 
             ArrayList<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
             System.out.println("多个文件发送");
             if (uris == null || uris.size() == 0) return;
             for (int i = 0; i < uris.size(); i++) {
-                String filePath = JxdUtils.getPath(this.getApplicationContext(), uris.get(i));
-                if (ConnectionInfo.filesSendingQueue.contains(filePath)) continue;
-                ConnectionInfo.filesSendingQueue.add(filePath);
+                Uri uri = uris.get(i);
+                if (ConnectionInfo.filesSendingQueue.contains(uri)) continue;
+                ConnectionInfo.filesSendingQueue.add(uri);
             }
-
         }
 
         if (!isNotifySendFileRunning)
@@ -544,7 +606,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
     }
 
     static volatile boolean isNotifySendFileRunning = false;
@@ -552,38 +613,41 @@ public class MainActivity extends AppCompatActivity {
      * @param:file_paths 待发送的文件名数组
      * @desc: 每发送一个文件信息给PC端后空转阻塞（PC端会告知Android端以收到，Android端会发起TCP文件传输连接至PC端，然后发送文件），待文件发送完成后再发送下一个文件信息
      * */
-    public void notifySendFile(final CopyOnWriteArrayList<String> file_paths) {
+    public void notifySendFile(final CopyOnWriteArrayList<Uri> uris) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 isNotifySendFileRunning = true;
                 //显示进度对话框
-                FileProgressDialogThread fileProgressDialogThread = new FileProgressDialogThread(null ,file_paths);
+                FileProgressDialogThread fileProgressDialogThread = new FileProgressDialogThread(null ,uris);
                 fileProgressDialogThread.start();
 
                 fileLoop:
-                for (int i = 0; i < file_paths.size(); i++) {
-                    final String file_path = file_paths.get(i);
+                for (int i = 0; i < uris.size(); i++) {
+                    Uri uri = uris.get(i);
+                    File dest = new File(MainActivity.this.getCacheDir(), utils.getFileNameFromUri(uri.toString()));
+                    try {
+                        if (!utils.copyFileUsingStream(getContentResolver().openInputStream(uri), dest))
+                            continue ;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        continue ;
+                    }
+                    final String file_path = dest.getAbsolutePath();
                     System.out.println("文件路径：" + file_path);
                     ConnectionInfo.sendFileName = file_path;
-                    final File file;
-                    try {
-                        file = new File(file_path);
-                        if (!file.exists()) {
-                            toastOnUI("文件不存在:" + file_path);
-                            continue;
-                        }
-                    } catch (Exception e) {
-                        toastOnUI("error:" + e.getMessage());
+                    if (!dest.exists()) {
+                        toastOnUI("文件不存在:" + file_path);
                         continue;
                     }
 
+
                     System.out.println("==========第" + (i + 1) + "个文件开始发送==========");
                     System.out.println("文件路径：" + file_path);
-                    toastOnUI("开始发送文件：" + file.getName());
+                    toastOnUI("开始发送文件：" + dest.getName());
 
                     //向PC端发送 "文件名"和"文件大小（字节）",如果有回应则发送文件
-                    writeChannelThread.send(ConnectionInfo.FILEINFOCONTROLMESSAGE + utils.getFileInfo(file));
+                    writeChannelThread.send(ConnectionInfo.FILEINFOCONTROLMESSAGE + utils.getFileInfo(dest));
                     //忙等待本文件发完
                     while (!ConnectionInfo.filesSendedSet.contains(file_path)) {
                         try {
@@ -602,8 +666,9 @@ public class MainActivity extends AppCompatActivity {
                     //改变进度对话框到下一个文件并重置进度
                     fileProgressDialogThread.next();
 
-                    toastOnUI("文件 " + file.getName() + " 发送完成");
+                    toastOnUI("文件 " + dest.getName() + " 发送完成");
                     System.out.println("==========第" + (i + 1) + "个文件发送完成==========");
+                    dest.delete();
                 }
 
                 ConnectionInfo.resetSendInfo();
@@ -624,7 +689,7 @@ public class MainActivity extends AppCompatActivity {
             if (receiveFileConnection.establishFlag) {
                 receiveFileConnection.start();
                 //显示进度对话框
-                CopyOnWriteArrayList<String> list = new CopyOnWriteArrayList<String>();
+                CopyOnWriteArrayList<String> list = new CopyOnWriteArrayList<>();
                 list.add(receiveFileInfo.get("fileName"));
                 new FileProgressDialogThread(receiveFileConnection, list).start();
             }
@@ -830,7 +895,7 @@ public class MainActivity extends AppCompatActivity {
         };
         view = getLayoutInflater().inflate(R.layout.popup_menu_window, null);
 
-        alertDialog = new AlertDialog.Builder(MainActivity.instance)
+        alertDialog = new AlertDialog.Builder(MainActivity.this)
                 .setTitle("剪贴板历史记录")
                 .setIcon(R.drawable.clip)
                 .setView(view)
@@ -864,7 +929,7 @@ public class MainActivity extends AppCompatActivity {
         fileTransferProgressView = getLayoutInflater().inflate(R.layout.file_transfer_progress, null);
         transfer_progress_bar = fileTransferProgressView.findViewById(R.id.transfer_progress_bar);
         sendStatusTextView = fileTransferProgressView.findViewById(R.id.sendStatusTextView);
-        fileTransferProgressDialog = new AlertDialog.Builder(MainActivity.instance)
+        fileTransferProgressDialog = new AlertDialog.Builder(MainActivity.this)
                 .setTitle("传输文件")
                 .setIcon(R.drawable.pigeon)
                 .setView(fileTransferProgressView)
@@ -975,7 +1040,7 @@ public class MainActivity extends AppCompatActivity {
                         DetectThread.interrupted();
                         closeConnection();
                         DetectThread.detectFlag = true;
-                        detectThread = new DetectThread();
+                        detectThread = new DetectThread(MainActivity.this);
                         detectThread.start();
                         toastOnUI("重置成功~");
                     } else if (PopupMenu.MENUITEM.CLIPHISTORY == item) {
@@ -983,7 +1048,7 @@ public class MainActivity extends AppCompatActivity {
                         alertDialog.show();
                     } else if (PopupMenu.MENUITEM.DETELEALL == item) {
 
-                        new android.app.AlertDialog.Builder(instance)
+                        new android.app.AlertDialog.Builder(MainActivity.this)
                                 .setTitle("删除文件")
                                 .setIcon(R.drawable.delete)
                                 .setMessage("确定要删除所有接收到的文件吗？")
@@ -1000,7 +1065,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                     }else if (PopupMenu.MENUITEM.SPECIFICATION == item) {
-                        new AlertDialog.Builder(MainActivity.instance)
+                        new AlertDialog.Builder(MainActivity.this)
                                 .setTitle(getString(R.string.useSpecificationTitle))
                                 .setIcon(R.drawable.specification)
                                 .setView(R.layout.use_specification)
@@ -1024,6 +1089,7 @@ public class MainActivity extends AppCompatActivity {
     class touchOnPagesListener implements View.OnTouchListener {
 
         public float startXPosition;
+        public float startYPosition;
 
         public float endXPosition;
 
@@ -1037,6 +1103,7 @@ public class MainActivity extends AppCompatActivity {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     startXPosition = event.getX();
+                    startYPosition = event.getY();
                     break;
                 case MotionEvent.ACTION_UP:
                     mRefreshLayout.onTouchEvent(event);
@@ -1059,8 +1126,10 @@ public class MainActivity extends AppCompatActivity {
 
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    if (currTab == 1)
-                        mRefreshLayout.onTouchEvent(event);
+                    if (currTab == 1){
+                        if (Math.abs(event.getY() - startYPosition) > Math.abs(event.getX() - startXPosition))
+                            mRefreshLayout.onTouchEvent(event);
+                    }
                     return false;
                 default:
                     break;
@@ -1078,10 +1147,14 @@ public class MainActivity extends AppCompatActivity {
         tcpFileConnectionChannel fileConnectionChannel;
         float progress;
 
-        public FileProgressDialogThread(tcpFileConnectionChannel fileConnectionChannel,CopyOnWriteArrayList<String> filePaths) {
+        public FileProgressDialogThread(tcpFileConnectionChannel fileConnectionChannel, CopyOnWriteArrayList uris) {
             this.fileConnectionChannel = fileConnectionChannel;
-            this.filePaths = filePaths;
+            this.filePaths = new CopyOnWriteArrayList<>();
+            for (Object uri : uris) {
+                this.filePaths.add(uri.toString());
+            }
         }
+
 
         public void next() {
             nextFileFlag = true;
@@ -1102,7 +1175,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < filePaths.size(); i++) {
                 @SuppressLint("DefaultLocale")
                 final String title = String.format("当前第%d个，总共%d个", i+1, filePaths.size());
-                final String msg = filePaths.get(i).substring(filePaths.get(i).lastIndexOf(File.separator) + 1);
+                final String msg = utils.getFileNameFromUri(filePaths.get(i));
                 final int idx = i;
 
                 //1.创建传输进度对话框
@@ -1182,19 +1255,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void afterTextChanged(Editable s) {
-            if (MainActivity.instance != null) {
-                if (!"".contentEquals(MainActivity.instance.edit_port.getText().toString()) && !"".contentEquals(MainActivity.instance.edit_ip.getText().toString())) {
+                if (!"".contentEquals(edit_port.getText().toString()) && !"".contentEquals(edit_ip.getText().toString())) {
                     //从输入框得到IP和端口
-                    serverIp = instance.edit_ip.getText().toString();
+                    serverIp = edit_ip.getText().toString();
                     try {
-                        serverPort = Integer.parseInt(instance.edit_port.getText().toString());
+                        serverPort = Integer.parseInt(edit_port.getText().toString());
                     } catch (Exception e) {
                         serverPort = 0;
                     }
                     //保存至文件
-                    MainActivity.instance.saveConfig();
+                    saveConfig();
                 }
-            }
         }
     }
 

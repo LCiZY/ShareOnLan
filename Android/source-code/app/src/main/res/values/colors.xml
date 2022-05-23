@@ -14,4 +14,17 @@
     <color name="colorGray">#555555</color>
     <color name="transparent_background_button">#11000000</color>
     <color name="transparent_background">#ffffff</color>
+
+
+
+    <color name="bgColor">#fff</color>
+    <color name="lightlightTextColor">#444</color>
+    <color name="lightTextColor">#222</color>
+    <color name="textColor">#000</color>
+
+    <color name="title_bar_item_stroke_color">#1c1c1c</color>
+    <color name="title_bar_item_fill_color">#1c1c1c</color>
+
+    <color name="center_btn_border_color">#172B4D</color>
+
 </resources>

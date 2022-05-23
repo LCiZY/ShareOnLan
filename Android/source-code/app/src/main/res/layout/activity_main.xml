@@ -12,13 +12,14 @@ android:fillViewport="true">
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity"
-        android:background="@color/colorWhite"
+        android:background="@color/bgColor"
         >
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@color/transparent"
             >
 
 
@@ -27,6 +28,7 @@ android:fillViewport="true">
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
                 android:gravity="center"
+                android:background="@color/transparent"
                 >
                 <!--0.5  1.5  2.5  0.5-->
                 <LinearLayout
@@ -35,13 +37,15 @@ android:fillViewport="true">
                     android:orientation="vertical"
                     android:gravity="center"
                     android:weightSum="460"
+                    android:background="@color/transparent"
                     >
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="45"
-                        android:gravity="end">
+                        android:gravity="end"
+                        android:background="@color/transparent">
 
                         <ImageView
                             android:layout_marginTop="15dp"
@@ -49,7 +53,7 @@ android:fillViewport="true">
                             android:id="@+id/more_dots"
                             android:layout_width="32dp"
                             android:layout_height="32dp"
-                            android:src="@drawable/setting"
+                            android:src="@drawable/titlebar_item_dots"
                             android:layout_marginRight="10dp" />
                     </LinearLayout>
 
@@ -60,6 +64,7 @@ android:fillViewport="true">
                         android:orientation="vertical"
                         android:gravity="center_horizontal"
                         android:layout_weight="190"
+                        android:background="@color/transparent"
                         >
 
                         <LinearLayout
@@ -67,7 +72,7 @@ android:fillViewport="true">
                             android:layout_height="match_parent"
                             android:orientation="vertical"
                             android:gravity="center"
-
+                            android:background="@color/transparent"
                             >
                             <ImageButton
                                 android:id="@+id/autoConnectImgBtn"
@@ -76,14 +81,15 @@ android:fillViewport="true">
                                 android:onClick="autoConnect"
                                 android:src="@drawable/ifautoconnect"
                                 android:scaleType="fitCenter"
-                                android:background="@color/colorWhite"
+                                android:background="@color/transparent"
                                 />
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="30dp"
                                 android:orientation="horizontal"
-                                android:gravity="center">
+                                android:gravity="center"
+                                android:background="@color/transparent">
 
                                 <com.sol.component.spinkit.SpinKitView
                                     android:id="@+id/connnecting_ani"
@@ -92,7 +98,7 @@ android:fillViewport="true">
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center"
                                     android:visibility="gone"
-                                    app:SpinKit_Color="@color/colorBlue" />
+                                    app:SpinKit_Color="@color/colorPrimary" />
 
                                 <ImageView
                                     android:id="@+id/ifConnectImageView"
@@ -105,7 +111,8 @@ android:fillViewport="true">
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/ifConnect"
-                                    android:textSize="16sp">
+                                    android:textSize="16sp"
+                                    android:textColor="@color/lightTextColor">
 
                                 </TextView>
                           </LinearLayout>
@@ -114,7 +121,8 @@ android:fillViewport="true">
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:gravity="center">
+                                android:gravity="center"
+                                android:background="@color/transparent">
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -122,11 +130,13 @@ android:fillViewport="true">
                                     android:gravity="center"
                                     android:focusable="true"
                                     android:focusableInTouchMode="true"
+                                    android:background="@color/transparent"
                                     >
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="IP地址">
+                                        android:text="IP地址"
+                                        android:textColor="@color/lightTextColor">
                                     </TextView>
                                     <EditText
                                         android:layout_width="150dp"
@@ -144,10 +154,12 @@ android:fillViewport="true">
                                     android:layout_marginBottom="40dp"
                                     android:focusable="true"
                                     android:focusableInTouchMode="true"
+                                    android:background="@color/transparent"
                                     >
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
+                                        android:textColor="@color/lightTextColor"
                                         android:text="端口号">
                                     </TextView>
                                     <EditText
@@ -174,7 +186,7 @@ android:fillViewport="true">
                         android:orientation="vertical"
                         android:gravity="center"
                         android:layout_weight="190"
-
+                        android:background="@color/transparent"
                         >
 
                         <HorizontalScrollView
@@ -186,6 +198,7 @@ android:fillViewport="true">
                             android:scrollbars="none"
                             android:fadingEdge="none"
                             android:overScrollMode="never"
+                            android:background="@color/transparent"
                             >
 
                         <LinearLayout
@@ -193,6 +206,7 @@ android:fillViewport="true">
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
                             android:orientation="horizontal"
+                            android:background="@color/transparent"
                             >
 
 
@@ -203,12 +217,14 @@ android:fillViewport="true">
                                 android:orientation="vertical"
                                 android:gravity="center"
                                 android:id="@+id/page1"
+                                android:background="@color/transparent"
                                 >
                                     <LinearLayout
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:orientation="horizontal"
-                                        android:gravity="center">
+                                        android:gravity="center"
+                                        android:background="@color/transparent">
                                         <!--发送按钮-->
                                         <Button
                                             android:layout_width="wrap_content"
@@ -238,7 +254,7 @@ android:fillViewport="true">
                                         android:layout_height="wrap_content"
                                         android:id="@+id/checkBox_ifEnableAutoSend"
                                         android:text="开启剪贴板检测并自动发送"
-                                        android:textColor="@color/colorGray"
+                                        android:textColor="@color/lightlightTextColor"
                                         android:onClick="enableAutoSend"
                                         />
 
@@ -247,15 +263,18 @@ android:fillViewport="true">
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
+                                    android:orientation="horizontal"
+                                    android:background="@color/transparent">
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
+                                        android:textColor="@color/colorGray"
                                         android:text="连接密钥："/>
                                     <TextView
                                         android:id="@+id/secret"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
+                                        android:textColor="@color/colorGray"
                                         android:textIsSelectable="true"/>
                                 </LinearLayout>
 
@@ -268,17 +287,17 @@ android:fillViewport="true">
                                     android:orientation="vertical"
                                     android:gravity="center"
                                     android:id="@+id/page2"
-                                    android:background="@color/colorWhite">
+                                    android:background="@color/transparent">
 
                                  <com.sol.component.circlerefresh.CircleRefreshLayout
-                                     app:AniBackColor="@color/colorWhite"
-                                     app:AniForeColor="@color/colorBlue"
+                                     app:AniBackColor="@color/bgColor"
+                                     app:AniForeColor="@color/colorPrimary"
                                      app:CircleSmaller="6"
                                      android:id="@+id/refresh_layout"
                                      android:layout_width="match_parent"
                                      android:layout_height="match_parent">
                                          <ListView
-                                             android:background="#ffffffff"
+                                             android:background="@color/transparent"
                                              android:id="@+id/fileList"
                                              android:layout_width="match_parent"
                                              android:layout_height="wrap_content"
@@ -290,7 +309,7 @@ android:fillViewport="true">
                                              android:layout_height="match_parent"
                                              android:textAlignment="center"
                                              android:text="@string/noReceivedFile"
-                                             android:textColor="@color/colorGray"
+                                             android:textColor="@color/lightTextColor"
                                              android:gravity="center" />
 
 
@@ -333,7 +352,7 @@ android:fillViewport="true">
                                 android:layout_height="40dp"
                                 android:scaleType="fitCenter"
                                 android:src="@drawable/tabbar"
-                                android:background="@color/colorWhite"
+                                android:background="@color/transparent"
                                 />
                         </LinearLayout>
                         <LinearLayout
@@ -354,7 +373,7 @@ android:fillViewport="true">
                                 android:layout_height="40dp"
                                 android:scaleType="fitCenter"
                                 android:src="@drawable/tabbar"
-                                android:background="@color/colorWhite"
+                                android:background="@color/transparent"
                                 />
                         </LinearLayout>
                         <LinearLayout

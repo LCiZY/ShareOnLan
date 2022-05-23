@@ -12,15 +12,15 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end">
 
-            <TextView
-                android:id="@+id/bottomDialogFileNameTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textSize="20sp"
-                android:textAlignment="center"
-                android:textColor="@color/colorGray"
-                android:gravity="center_horizontal" />
+        <TextView
+            android:id="@+id/bottomDialogFileNameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="20sp"
+            android:textAlignment="center"
+            android:textColor="@color/lightTextColor"
+            android:gravity="center_horizontal" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -40,11 +40,11 @@
                 android:id="@+id/deleteBtn"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/delete"
+                android:src="@drawable/btn_delete"
                 android:layout_marginEnd="2dp"
                 android:layout_marginTop="10dp"
                 android:scaleType="fitXY"
-                android:background="#00000000"
+                android:background="@color/transparent"
                 android:layout_marginRight="2dp" />
         </LinearLayout>
 

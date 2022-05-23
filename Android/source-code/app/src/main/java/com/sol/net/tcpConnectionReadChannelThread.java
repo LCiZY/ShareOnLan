@@ -1,6 +1,9 @@
 package com.sol.net;
 
+import android.content.Context;
+
 import com.sol.MainActivity;
+import com.sol.util.ToastUtils;
 
 import java.io.IOException;
 
@@ -13,9 +16,13 @@ public class tcpConnectionReadChannelThread extends tcpConnectionChannel {
 
 
     public String receiveStr = null;
+    private Context ctx;
     private Runnable uiRun;
-    public tcpConnectionReadChannelThread(Runnable uiRun){
+    private MainActivity mainActivity;
+    public tcpConnectionReadChannelThread(Context context, Runnable uiRun, MainActivity mainActivity){
+        ctx = context;
         this.uiRun = uiRun;
+        this.mainActivity = mainActivity;
     }
     private int tick=0;
 
@@ -49,9 +56,9 @@ public class tcpConnectionReadChannelThread extends tcpConnectionChannel {
                receiveStr = str;
                if(str.indexOf(ConnectionInfo.FILEINFOCONTROLMESSAGE)==0) {//PC端告知本移动端 要发送文件 并 发来文件信息
                    ConnectionInfo.processReceiveFileInfo(str);
-                   MainActivity.instance.receiveFile();
+                   mainActivity.receiveFile();
                }else if(str.contentEquals(ConnectionInfo.FILEINFORESPONSE))//PC端告知本移动端 已收到 文件名和文件大小的信息
-                   MainActivity.instance.sendFile(ConnectionInfo.sendFileName);
+                   mainActivity.sendFile(ConnectionInfo.sendFileName);
                else { //普通文本
                    System.out.println("----------------------接收文本："+str);
                    disableClipChangeSend();
@@ -59,11 +66,11 @@ public class tcpConnectionReadChannelThread extends tcpConnectionChannel {
                    ConnectionInfo.clipDatas.addFirst(receiveStr);
                    handler.sendEmptyMessageDelayed(100,0);
                    enableClipChangeSend();
-                   MainActivity.instance.toastOnUI("接收到来自PC的消息，已复制到剪贴板。");
+                   ToastUtils.showToast(ctx, "接收到来自PC的消息，已复制到剪贴板。");
 
                }
            }else if(ConnectionInfo.RESPONSE.equals(str)) {  //如果是”心跳包“消息，回应一个”心跳包“消息报文
-               MainActivity.instance.sendMessage(ConnectionInfo.RESPONSE+"\n");
+               mainActivity.sendMessage(ConnectionInfo.RESPONSE+"\n");
            }
 
         }

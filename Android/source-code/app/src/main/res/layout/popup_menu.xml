@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:textSize="15sp"
             android:paddingLeft="20dip"
-            android:textColor="#595d5f"
+            android:textColor="@color/textColor"
             android:text="重置连接" />
         
     </LinearLayout>
@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:textSize="15sp"
             android:paddingLeft="20dip"
-            android:textColor="#595d5f"
+            android:textColor="@color/textColor"
             android:text="剪贴记录" />
     </LinearLayout>
     <View
@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:textSize="15sp"
             android:paddingLeft="20dip"
-            android:textColor="#595d5f"
+            android:textColor="@color/textColor"
             android:text="删除文件" />
     </LinearLayout>
     <View
@@ -81,7 +81,7 @@
             android:layout_height="wrap_content"
             android:textSize="15sp"
             android:paddingLeft="20dip"
-            android:textColor="#595d5f"
+            android:textColor="@color/textColor"
             android:text="使用说明" />
     </LinearLayout>
 

@@ -33,12 +33,21 @@ bool fileServer::listenOn(int port){
 }
 
 void fileServer::clearSockets(){
-    QHashIterator<int, FileSocket*> iter(this->descriptor2socket);
-    while(iter.hasNext()) {
-        iter.next();
-        if(!iter.value()->isTransferDone())
-            iter.value()->deleteLater();
-    }
+//    QHashIterator<int, FileSocket*> iter(this->descriptor2socket);
+//    while(iter.hasNext()) {
+//        iter.next();
+//        FileSocket* socket = iter.value();
+//        if(!socket->isTransferDone()){
+
+//            Log(tr("false"));
+//            Log(tr(socket->isValid()? "valid" :"invalid"));
+//            Log(tr(socket->isReadable()? "readable" :"unreadable"));
+//            Log(tr(socket->isWritable()? "writable" :"unwritable"));
+//            socket->deleteLater();
+
+//            Log(tr("over"));
+//        }
+//    }
     this->descriptor2socket.clear();
 }
 
@@ -64,6 +73,9 @@ void fileServer::incomingConnection(int descriptor){
     connect(socket,SIGNAL(fileTransferDone()),this,SIGNAL(fileTransferDone()));
     connect(socket,SIGNAL(currFileInfo(qint64,QString)),this,SIGNAL(currFileInfo(qint64,QString)));
     connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
+    connect(socket,&FileSocket::fileTransferDone,[=](){
+        descriptor2socket.remove(descriptor);
+       });
 
     if(ifSend){  //发送文件
         socket->setFileInfo(sendFilesQueue.dequeue());
@@ -182,6 +194,7 @@ FileSocket::FileSocket(int socketdesc, QTcpSocket *){
     this->setFileInfo(nullptr);
     transferDone = false;
     detectConnectionTimerID = startTimer(1000);
+    lastTransferTime = clock();
 }
 
 
@@ -220,8 +233,8 @@ void FileSocket::sendFile(){
     sendfile.close();
     this->close();
     transferDone = true;
-    this->deleteLater();
     emit fileTransferDone();
+    this->deleteLater();
 }
 
 
@@ -273,6 +286,7 @@ void FileSocket::receiveFile(){
         this->close();
 
         transferDone = true;
+        emit fileTransferDone();
         this->deleteLater();
     }
 

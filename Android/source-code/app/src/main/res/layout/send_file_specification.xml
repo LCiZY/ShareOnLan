@@ -13,6 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/way1"
+            android:textColor="@color/textColor"
             android:textSize="20sp"/>
         <ImageView
             android:layout_width="match_parent"
@@ -23,6 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/way1step1"
+            android:textColor="@color/textColor"
             android:textSize="16sp"
             android:textAlignment="center"
             android:gravity="center_horizontal" />
@@ -36,6 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/way1step2"
+            android:textColor="@color/textColor"
             android:textSize="16sp"
             android:textAlignment="center"
             android:gravity="center_horizontal"/>
@@ -49,6 +52,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/way1step3"
+            android:textColor="@color/textColor"
             android:textSize="16sp"
             android:textAlignment="center"
             android:gravity="center_horizontal"/>
@@ -60,6 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="50dp"
             android:text="@string/way2"
+            android:textColor="@color/textColor"
             android:textSize="20sp"/>
         <ImageView
             android:layout_marginTop="8dp"
@@ -71,6 +76,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/way2step1"
+            android:textColor="@color/textColor"
             android:textSize="16sp"
             android:textAlignment="center"
             android:gravity="center_horizontal"/>
@@ -84,6 +90,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/way2step2"
+            android:textColor="@color/textColor"
             android:textSize="16sp"
             android:textAlignment="center"
             android:gravity="center_horizontal"/>
