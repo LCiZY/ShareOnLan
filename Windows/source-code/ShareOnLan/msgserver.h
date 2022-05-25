@@ -29,6 +29,7 @@ public:
     const char* RESPONSE = "R\n";
     const char* FILEINFORESPONSE="FILEINFO R\n";
     const int timeOutValue = 10;
+    const int DEFAULT_IP_PORT_UDP_PORT = 56789;
     QStack<int> msgHeartStack;
 
     int listeningPort;
@@ -36,10 +37,13 @@ public:
     bool ifConnected();
     void closeSocket();
     void getLanBrocastAddress();
+    const QTcpSocket* getSocket();
 
+    void incomingConnection(QTcpSocket* socket);
 
 public slots:
     void readMsg();
+    void send(const char *);
     void sendMsg(QString);
     void socketDisconnect();
     QString getConnection();
@@ -51,6 +55,7 @@ public slots:
 signals:
     void clientChange();
     void ipChange();
+    void otherPCReadyReceiveFile();
 
 protected:
     void incomingConnection(int descriptor);

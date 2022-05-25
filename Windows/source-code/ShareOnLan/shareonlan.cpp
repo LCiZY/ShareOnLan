@@ -7,7 +7,7 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     ui(new Ui::ShareOnLan)
 {
     ui->setupUi(this);
-    LogWithoutTime("\n\n");
+    LogWithoutTime("");
     Log("程序开始运行");
 
     this->setWindowTitle(tr("ShareOnLan"));
@@ -32,6 +32,8 @@ ShareOnLan::~ShareOnLan()
     conf->deleteLater();
     fileserver->deleteLater();
     server->deleteLater();
+    if(connect2ui != nullptr)
+        connect2ui->deleteLater();
     delete ui;
     Log("主窗体析构调用完成，程序结束运行");
 }
@@ -45,6 +47,7 @@ void ShareOnLan::serverInit(){
     fileserver = new fileServer;
     connect(server,SIGNAL(clientChange()),this,SLOT(clientChange()));
     connect(server,SIGNAL(ipChange()),this,SLOT(ipChange()));
+    connect(server,SIGNAL(otherPCReadyReceiveFile()),this,SLOT(otherPCReadyReceiveFile()));
     connect(fileserver,SIGNAL(newFileConnection()),this,SLOT(showProgressUI()));
     connect(fileserver,SIGNAL(fileTransferDone()),this,SLOT(progressUIDestroy()));
     connect(fileserver,SIGNAL(currFileInfo(qint64,QString)),this,SLOT(setProgressInfo(qint64,QString)));
@@ -55,7 +58,7 @@ void ShareOnLan::serverInit(){
 void ShareOnLan::windowInit(){
 
     ui->right_top_icon_label->setPixmap(QPixmap(":/icon/transfer_3d.png"));
-    ui->lineEdit_port->setText(conf->getConfig("port"));valid_port=new QIntValidator(this); valid_port->setRange(1025,65533);ui->lineEdit_port->setValidator(valid_port); ui->lineEdit_port->setToolTip("端口号范围：1025 - 65534");
+    ui->lineEdit_port->setText(conf->getConfig("port"));valid_port=new QIntValidator(this); valid_port->setRange(PORT_BOTTOM,PORT_TOP);ui->lineEdit_port->setValidator(valid_port); ui->lineEdit_port->setToolTip(QString("%1 <= 端口号 <= %2").arg(QString::number(PORT_BOTTOM)).arg(QString::number(PORT_TOP)));
     ui->checkBox_ifhidewhenlaunch->setChecked(conf->getConfig("ifhidewhenlaunch").compare("true")==0);
     ui->checkBox_ifautostartup->setChecked(conf->getConfig("automaticStartup").compare("true")==0); conf->setAutomaticStartup(ui->checkBox_ifautostartup->isChecked());
     ui->lineEdit_secret->setText(conf->getConfig("secret")); ui->lineEdit_secret->setToolTip("输入手机APP上的密钥");
@@ -84,7 +87,7 @@ void ShareOnLan::varInit(){
     //拖动窗口移动标志
     moveFlag=false;
     progressui = nullptr;
-
+    connect2ui = nullptr;
 }
 
 void ShareOnLan::setWinFlags(){
@@ -150,6 +153,9 @@ void ShareOnLan::sysTrayMenuInit(){
     mRestartServiceAction = new QAction(QIcon(":/images/icon_reboot.png"),tr("重启服务"),mMenu);
     connect(mRestartServiceAction,SIGNAL(triggered()),this,SLOT(on_restartServer()));
 
+    mConnectToAction = new QAction(QIcon(":/images/icon_connect_to.png"),tr("连接至"),mMenu);
+    connect(mConnectToAction,SIGNAL(triggered()),this,SLOT(on_connectTo()));
+
     mSettingAction = new QAction(QIcon(":/images/icon_setting.png"),tr("设置"),mMenu);
     connect(mSettingAction,SIGNAL(triggered()),this,SLOT(on_showSettingAction()));
 
@@ -170,6 +176,8 @@ void ShareOnLan::sysTrayMenuInit(){
     mMenu->addAction(mConnectInfoAction);
     //新增菜单项---重启服务
     mMenu->addAction(mRestartServiceAction);
+    //新增菜单项---连接至
+    mMenu->addAction(mConnectToAction);
     //新增菜单项---显示主界面
     mMenu->addAction(mSettingAction);
     //增加分隔符----------
@@ -243,6 +251,34 @@ void ShareOnLan::ipChange(){
     sysTrayTextChange();
 }
 
+void ShareOnLan::connectToOtherPC(QString ip, quint16 port){
+    Log(QString("连接到其他PC， ip:%1  port:%2").arg(ip).arg(QString::number(port)));
+    QTcpSocket* socket = new QTcpSocket();
+    socket->connectToHost(ip, port);
+    bool ok = socket->waitForConnected(3000);
+    QAbstractSocket::SocketState state = socket->state();
+    if(ok &&  state == QAbstractSocket::ConnectedState){
+        server->incomingConnection(socket);
+        Log("连接到其他PC成功");
+    }else{
+        QMessageBox::critical(nullptr,QString("连接失败"),QString("连接至其他PC失败：%1").arg(socket->errorString()), QMessageBox::Ok);
+        Log("连接到其他PC失败");
+    }
+
+}
+
+void ShareOnLan::otherPCReadyReceiveFile(){
+    if(!server->ifConnected()) return;
+    FileSocket* socket = new FileSocket(-1);
+    socket->connectToHost(server->getSocket()->peerAddress(), fileserver->fileServerListeningPort); //应该写对方的文件服务器端口
+    bool ok = socket->waitForConnected(3000);
+    QAbstractSocket::SocketState state = socket->state();
+    if(ok && state == QAbstractSocket::ConnectedState){
+        fileserver->incomingConnection(socket);
+    }
+
+}
+
 void ShareOnLan::sysTrayTextChange(){
     QString content="";
     for(int i=0;i<ipList.size();i++) {
@@ -297,6 +333,15 @@ void ShareOnLan::on_SendFile(){
     sendFilesQueue.push_back(buildFileInfo(filePath));
     Log(QString("发送文件：") + filePath);
     this->server->sendMsg(FILE_INFO_MSG_HEAD + getFileInfoMsg(filePath));
+}
+
+void ShareOnLan::on_connectTo(){
+    if(connect2ui == nullptr){
+        connect2ui = new Connect2UI(conf);
+        connect(connect2ui,SIGNAL(confirmConnect(QString,quint16)), this, SLOT(connectToOtherPC(QString, quint16)));
+    }
+    connect2ui->show();
+
 }
 
 void ShareOnLan::on_showSettingAction(){

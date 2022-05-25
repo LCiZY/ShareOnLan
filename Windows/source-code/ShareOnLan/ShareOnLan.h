@@ -23,6 +23,7 @@
 #include<msgserver.h>
 #include<fileserver.h>
 #include<progressui.h>
+#include<connect2ui.h>
 #include<QLocalSocket>
 #include<QLocalServer>
 #include<QTextStream>
@@ -55,6 +56,7 @@ public slots:
     void on_SendFile();
     void on_ShowNetInfo();
     void on_restartServer();
+    void on_connectTo();
     void on_showSettingAction();
 
     void on_exitAppAction();
@@ -62,6 +64,7 @@ public slots:
     void portChange(QString);
     void secretChange(QString);
     void ipChange();
+    void otherPCReadyReceiveFile();
     void slot_checkBox_ifhidewhenlaunch(bool);
     void slot_checkBox_autoLaunch(bool);
     void showMain();
@@ -76,7 +79,7 @@ public slots:
     void progressUIDestroy();
 
     void newLocalSocketConnection();
-
+    void connectToOtherPC(QString ip, quint16 port);
 private:
     Ui::ShareOnLan *ui;
     QSystemTrayIcon* mSysTrayIcon;
@@ -85,11 +88,13 @@ private:
     QAction *mSendFile;
     QAction *mConnectInfoAction;
     QAction *mRestartServiceAction;
+    QAction *mConnectToAction;
     QAction *mSettingAction;
     QAction *mExitAppAction;
     QIntValidator *valid_port;
     QLocalServer* m_localServer;
     progressUI* progressui;
+    Connect2UI* connect2ui;
 
 
     msgServer* server;

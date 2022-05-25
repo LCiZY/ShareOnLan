@@ -31,7 +31,8 @@ SOURCES += \
     msgserver.cpp \
     globaldata.cpp \
     progressui.cpp \
-    shareonlan.cpp
+    shareonlan.cpp \
+    connect2ui.cpp
 
 HEADERS += \
     config.h \
@@ -39,11 +40,13 @@ HEADERS += \
     globaldata.h \
     msgserver.h \
     progressui.h \
-    shareonlan.h
+    shareonlan.h \
+    connect2ui.h
 
 FORMS += \
     progressui.ui \
-    ShareOnLan.ui
+    ShareOnLan.ui \
+    connect2ui.ui
 
 DISTFILES += \
     defaultConfiguration.ini \

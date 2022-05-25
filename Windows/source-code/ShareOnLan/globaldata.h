@@ -26,6 +26,15 @@ struct SelfFileInfo {
 };
 typedef SelfFileInfo FileInfo;
 
+struct SelfConnectionInfo {
+    quint8 type;
+    QString ip;
+    quint16 msgPort;
+    quint16 fileServerPort;
+};
+typedef SelfConnectionInfo ConnectionInfo;
+
+extern ConnectionInfo* connectionInfo;
 extern QQueue<FileInfo*> receiveFilesQueue;
 extern QQueue<FileInfo*> sendFilesQueue;
 extern QString FileInfoMsgPreffix;
@@ -44,6 +53,8 @@ extern config *conf;
 extern const int TRANSFERTIMEOUT;
 extern const int FILESENDBUFFERSIZE;
 extern const int FILEBUFFERSIZE;
+extern const int PORT_BOTTOM;
+extern const int PORT_TOP;
 
 
 extern QString FILE_INFO_MSG_HEAD;

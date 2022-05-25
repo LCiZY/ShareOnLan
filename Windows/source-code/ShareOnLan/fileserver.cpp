@@ -5,6 +5,11 @@
 fileServer::fileServer()
 {
     ifSend = false;
+    int port = conf->getConfig("fileServerPort").toInt();
+    if(PORT_BOTTOM <= port && port <= PORT_TOP){
+        fileServerListeningPort = port;
+    }
+
 }
 
 bool fileServer::ifConnected(){
@@ -65,29 +70,22 @@ void fileServer::serverShutDown(){
 
 
 void fileServer::incomingConnection(int descriptor){
-
-
-    Log(tr("接收到文件传输连接:")+QString::number(descriptor));
     FileSocket* socket = new FileSocket(descriptor);
-    socket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
-    connect(socket,SIGNAL(fileTransferDone()),this,SIGNAL(fileTransferDone()));
-    connect(socket,SIGNAL(currFileInfo(qint64,QString)),this,SIGNAL(currFileInfo(qint64,QString)));
-    connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
-    connect(socket,&FileSocket::fileTransferDone,[=](){
-        descriptor2socket.remove(descriptor);
-       });
+    incomingConnection(socket);
+}
+
+void fileServer::incomingConnection(FileSocket* socket){
+
+    Log(tr("接收到文件传输连接:")+QString::number(socket->socketDescriptor()));
+    initSocket(socket);
 
     if(ifSend){  //发送文件
-        socket->setFileInfo(sendFilesQueue.dequeue());
         sendFile(socket);
-        ifSend = false;
     }else{  //接收文件
-        socket->setFileInfo(receiveFilesQueue.dequeue());
         receiveFile(socket);
-        Log(tr("接收文件"));
     }
 
-    descriptor2socket[descriptor] = socket;
+    descriptor2socket[socket->socketDescriptor()] = socket;
     //告知UI显示进度条界面
     emit newFileConnection();
 
@@ -99,6 +97,15 @@ void fileServer::socketDisconnect(){
 }
 
 
+void fileServer::initSocket(FileSocket* socket){
+    socket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
+    connect(socket,SIGNAL(fileTransferDone()),this,SIGNAL(fileTransferDone()));
+    connect(socket,SIGNAL(currFileInfo(qint64,QString)),this,SIGNAL(currFileInfo(qint64,QString)));
+    connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
+    connect(socket,&FileSocket::fileTransferDone,[=](){
+        descriptor2socket.remove(socket->socketDescriptor());
+       });
+}
 
 /**
 *
@@ -110,6 +117,8 @@ void fileServer::socketDisconnect(){
 */
 
 void fileServer::receiveFile(FileSocket* socket){
+    Log(tr("接收文件"));
+    socket->setFileInfo(receiveFilesQueue.dequeue());
     //设置准备接收文件的大小
     if(socket->getFileInfo() == nullptr) { Log("fileServer::receiveFile：未知的接收文件信息（1）"); socket->close();return; }
 
@@ -144,7 +153,9 @@ void fileServer::receiveFile(FileSocket* socket){
 *               5.关闭连接
 */
 void fileServer::sendFile(FileSocket* socket){
-
+    Log(tr("发送文件"));
+    ifSend = false;
+    socket->setFileInfo(sendFilesQueue.dequeue());
     if(socket->getFileInfo() == nullptr) { Log("fileServer::sendFile：未知的接收文件信息（2）"); socket->close();return; }
 
     QThread* sendFileThread = new QThread();

@@ -1,5 +1,6 @@
 #include<globaldata.h>
 
+ConnectionInfo* connectionInfo = new ConnectionInfo;
 QQueue<FileInfo*> receiveFilesQueue = QQueue<FileInfo*>();
 QQueue<FileInfo*> sendFilesQueue = QQueue<FileInfo*>();
 QString FileInfoMsgPreffix = "${FILEINFO}";
@@ -16,7 +17,8 @@ config *conf = new config();
 const int TRANSFERTIMEOUT = 5000; // ms
 const int FILESENDBUFFERSIZE = 40960;
 const int FILEBUFFERSIZE = 40960;
-
+const int PORT_BOTTOM = 1025;
+const int PORT_TOP = 65533;
 
 QString FILE_INFO_MSG_HEAD="${FILEINFO}";
 

@@ -8,5 +8,6 @@
         <file>button_directory.png</file>
         <file>icon_reboot.png</file>
         <file>icon_link.png</file>
+        <file>icon_connect_to.png</file>
     </qresource>
 </RCC>
