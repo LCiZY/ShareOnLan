@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>280</width>
+    <width>360</width>
     <height>175</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>280</width>
+    <width>360</width>
     <height>175</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>280</width>
+    <width>360</width>
     <height>175</height>
    </size>
   </property>
@@ -28,9 +28,9 @@
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>90</x>
      <y>30</y>
-     <width>160</width>
+     <width>181</width>
      <height>41</height>
     </rect>
    </property>
@@ -50,10 +50,10 @@
   <widget class="QPushButton" name="connectButton">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>140</y>
-     <width>80</width>
-     <height>20</height>
+     <x>130</x>
+     <y>130</y>
+     <width>101</width>
+     <height>26</height>
     </rect>
    </property>
    <property name="text">
@@ -63,7 +63,7 @@
   <widget class="QPushButton" name="closeButton">
    <property name="geometry">
     <rect>
-     <x>250</x>
+     <x>330</x>
      <y>0</y>
      <width>24</width>
      <height>24</height>
@@ -76,9 +76,9 @@
   <widget class="QWidget" name="horizontalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>90</x>
      <y>80</y>
-     <width>160</width>
+     <width>181</width>
      <height>41</height>
     </rect>
    </property>
@@ -100,19 +100,19 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>280</width>
+     <width>360</width>
      <height>175</height>
     </rect>
    </property>
    <property name="minimumSize">
     <size>
-     <width>280</width>
+     <width>360</width>
      <height>175</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>280</width>
+     <width>360</width>
      <height>175</height>
     </size>
    </property>

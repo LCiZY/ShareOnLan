@@ -15,6 +15,7 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     this->setWindowFlag(Qt::FramelessWindowHint,true);
     this->setAttribute(Qt::WA_TranslucentBackground,true);
     QApplication::setQuitOnLastWindowClosed(false);
+    QNetworkProxyFactory::setUseSystemConfiguration(false);
 
     serverInit();
 
@@ -254,12 +255,14 @@ void ShareOnLan::ipChange(){
 void ShareOnLan::connectToOtherPC(QString ip, quint16 port){
     Log(QString("连接到其他PC， ip:%1  port:%2").arg(ip).arg(QString::number(port)));
     QTcpSocket* socket = new QTcpSocket();
+    socket->setProxy(QNetworkProxy::NoProxy);
     socket->connectToHost(ip, port);
     bool ok = socket->waitForConnected(3000);
     QAbstractSocket::SocketState state = socket->state();
     if(ok &&  state == QAbstractSocket::ConnectedState){
         server->incomingConnection(socket);
         Log("连接到其他PC成功");
+        connect2ui->close();
     }else{
         QMessageBox::critical(nullptr,QString("连接失败"),QString("连接至其他PC失败：%1").arg(socket->errorString()), QMessageBox::Ok);
         Log("连接到其他PC失败");
@@ -270,6 +273,7 @@ void ShareOnLan::connectToOtherPC(QString ip, quint16 port){
 void ShareOnLan::otherPCReadyReceiveFile(){
     if(!server->ifConnected()) return;
     FileSocket* socket = new FileSocket(-1);
+    socket->setProxy(QNetworkProxy::NoProxy);
     socket->connectToHost(server->getSocket()->peerAddress(), fileserver->fileServerListeningPort); //应该写对方的文件服务器端口
     bool ok = socket->waitForConnected(3000);
     QAbstractSocket::SocketState state = socket->state();
@@ -455,7 +459,14 @@ void ShareOnLan::progressUIDestroy(){
 
 
 
-
+void ShareOnLan::keyPressEvent(QKeyEvent *ev)
+{
+    if(ev->key() == Qt::Key_Escape)
+    {
+      close();
+    }
+    QMainWindow::keyPressEvent(ev);
+}
 
 void ShareOnLan::mouseMoveEvent(QMouseEvent *event)
 {

@@ -10,7 +10,12 @@ Connect2UI::Connect2UI(config* c, QWidget *parent) :
 //    this->setAttribute(Qt::WA_TranslucentBackground,true);
     this->setWindowTitle(QString("连接至其他PC"));
 
-    connect(ui->connectButton,&QPushButton::clicked,[=](){
+    connect(ui->connectButton, &QPushButton::clicked,[=](){
+            ui->connectButton->setText(QString("正在连接..."));
+            ui->connectButton->setEnabled(false);
+            QApplication::setOverrideCursor(Qt::WaitCursor);
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
             QString ip = ui->lineEdit_ip->text().trimmed();
             QString p  = ui->lineEdit_port->text().trimmed();
             c->setConfig("otherPCIP", ip);
@@ -22,7 +27,16 @@ Connect2UI::Connect2UI(config* c, QWidget *parent) :
             }else{
                 QMessageBox::critical(nullptr,QString("连接失败"),QString("IP或端口号不合法"),QMessageBox::Ok);
             }
+
+            ui->connectButton->setText(QString("连接"));
+            ui->connectButton->setEnabled(true);
+            QApplication::restoreOverrideCursor();
        });
+    ui->connectButton->setFocus();    //设置默认焦点
+    ui->connectButton->setShortcut( QKeySequence::InsertParagraphSeparator );  //设置快捷键为键盘的“回车”键
+    ui->connectButton->setShortcut(Qt::Key_Enter);  //设置快捷键为enter键
+    ui->connectButton->setShortcut(Qt::Key_Return); //设置快捷键为小键盘上的enter键
+
 
     connect(ui->closeButton,&QPushButton::clicked,[=](){
         close();
@@ -36,10 +50,26 @@ Connect2UI::Connect2UI(config* c, QWidget *parent) :
     QIntValidator* valid_port=new QIntValidator(this); valid_port->setRange(PORT_BOTTOM,PORT_TOP);
     ui->lineEdit_port->setValidator(valid_port);
 
+    connect(ui->lineEdit_ip, SIGNAL(returnPressed()), ui->connectButton, SIGNAL(clicked()), Qt::UniqueConnection);
+    connect(ui->lineEdit_port, SIGNAL(returnPressed()), ui->connectButton, SIGNAL(clicked()), Qt::UniqueConnection);
+
+
     ui->label_bg->setStyleSheet("background-color: rgba(255, 255, 255, 255);");
+
+    QWidget::setTabOrder(ui->lineEdit_ip, ui->lineEdit_port);
+    QWidget::setTabOrder(ui->lineEdit_port, ui->connectButton);
+    QWidget::setTabOrder(ui->connectButton, ui->lineEdit_ip);
 }
 
-Connect2UI::~Connect2UI()
-{
+Connect2UI::~Connect2UI(){
     delete ui;
+}
+void Connect2UI::keyPressEvent(QKeyEvent *ev)
+{
+    if(ev->key() == Qt::Key_Escape)
+    {
+      close();
+    }
+
+    QWidget::keyPressEvent(ev);
 }

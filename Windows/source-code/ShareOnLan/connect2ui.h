@@ -6,6 +6,7 @@
 #include<QRegExp>
 #include<globaldata.h>
 #include<QMessageBox>
+#include<QKeyEvent>
 
 namespace Ui {
 class Connect2UI;
@@ -21,7 +22,8 @@ public:
 
 signals:
     void confirmConnect(QString, quint16);
-
+protected:
+    virtual void keyPressEvent(QKeyEvent *ev);
 private:
     Ui::Connect2UI *ui;
 };

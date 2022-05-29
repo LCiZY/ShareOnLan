@@ -13,11 +13,13 @@
 #include<QUrl>
 #include<QtMath>
 #include<QPainter>
+#include<QKeyEvent>
 #include<QPainterPath>
 #include<QRectF>
 #include<QPolygon>
 #include<QRegion>
 #include<QMimeData>
+#include<QNetworkProxy>
 
 #include<config.h>
 #include<msgserver.h>
@@ -48,6 +50,7 @@ protected:
     void mousePressEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
     void closeEvent(QCloseEvent* event);
+    virtual void keyPressEvent(QKeyEvent *ev);
 
 public slots:
     void clientChange();
