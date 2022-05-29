@@ -22,21 +22,30 @@ void msgServer::incomingConnection(int descriptor){
 
     if(this->socket!=nullptr){ Log(tr("已存在其他TCP连接！拒绝连接"));  return; }
     pauseAccepting();
-    this->socket = new QTcpSocket(this);
-    this->socket->setSocketDescriptor(descriptor);
-    this->socket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
+    QTcpSocket* socket = new QTcpSocket(this);
+    socket->setSocketDescriptor(descriptor);
+    incomingConnection(socket);
+
+}
+
+void msgServer::incomingConnection(QTcpSocket* socket){
+    if(this->socket!=nullptr){ this->socketDisconnect(); }
+
+    this->socket = socket;
+    socket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
     if(!this->socket->waitForConnected()) {Log(tr("error:%1").arg(this->socket->errorString()));}
     connect(socket,SIGNAL(readyRead()),this,SLOT(readMsg()));
     connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
-    Log(tr("接收到控制连接：")+QString::number(descriptor)+tr("  ip:")+getIPv4( socket->peerAddress().toIPv4Address())+tr("  port:")+QString::number(socket->peerPort()));
+    Log(tr("接收到控制连接：")+QString::number(socket->socketDescriptor())+tr("  ip:")+getIPv4( socket->peerAddress().toIPv4Address())+tr("  port:")+QString::number(socket->peerPort()));
     //发送client改变消息
     emit(clientChange());
 }
 
+
 void msgServer::socketDisconnect(){
 
     if(this->socket!=nullptr){
-        Log(tr("控制连接断开：")+QString::number(this->socket->socketDescriptor()));
+        Log(tr("控制连接断开，socket descriptor：")+QString::number(this->socket->socketDescriptor()));
         disconnect(socket,SIGNAL(readyRead()),this,SLOT(readMsg()));
         disconnect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
         this->socket->deleteLater();
@@ -62,29 +71,39 @@ void msgServer::readMsg(){
         lastMsg =QString::fromUtf8(buf);
 
 
-        if(lastMsg.indexOf(FILE_INFO_MSG_HEAD)==0){//如果是文件信息
+        if(lastMsg.indexOf(FILE_INFO_MSG_HEAD)==0){//收到文件信息
            Log(tr("接收到移动端文件信息：")+lastMsg);
            FileInfo* rt = parseFileInfoMsg(lastMsg);
            receiveFilesQueue.enqueue(rt);
-           //自动回复: FILEINFO R\n
-           this->socket->write(FILEINFORESPONSE,strlen(FILEINFORESPONSE));
-        }else if(lastMsg.compare(RESPONSE)==0){
+           send(FILEINFORESPONSE);
+        }else if(lastMsg.compare(FILEINFORESPONSE)==0){//对方已经收到文件信息了
+            emit otherPCReadyReceiveFile();
+        }else if(lastMsg.compare(RESPONSE)==0){//心跳包
            if(this->msgHeartStack.size()) this->msgHeartStack.pop();
-        }
-        else{//文本信息，写入剪贴板
+        }else{//文本信息，写入剪贴板
             Log(tr("接收到移动端文本消息：")+lastMsg);
             QClipboard *board = QApplication::clipboard();
             board->setText(lastMsg);msgList.append(lastMsg);
             //自动回复: R\n
-            this->socket->write(RESPONSE,strlen(RESPONSE));
+            send(RESPONSE);
         }
 
     }
 
 }
 
-void msgServer::sendMsg(QString msg){
+QMutex mutex;
 
+void msgServer::send(const char* msg){
+    mutex.lock();
+    if(this->socket!=nullptr){
+        this->socket->write(msg, strlen(msg));
+    }
+    mutex.unlock();
+}
+
+void msgServer::sendMsg(QString msg){
+    mutex.lock();
     if(this->socket!=nullptr){
         //将换行符用其他字符替代
         msg = msg.replace("\r",REPLACER);
@@ -93,7 +112,7 @@ void msgServer::sendMsg(QString msg){
         std::string temp = msg.toStdString();
         this->socket->write(temp.c_str(),strlen(temp.c_str()));
     }
-
+    mutex.unlock();
 }
 
 //断开socket连接，关闭socket
@@ -129,6 +148,10 @@ QString msgServer::getConnection(){
     return ifConnected()?("连接至"+getIPv4(this->socket->peerAddress().toIPv4Address())):"无连接";
 }
 
+const QTcpSocket* msgServer::getSocket(){
+    return this->socket;
+}
+
 int errorTimes = 0;
 void msgServer::timerEvent(QTimerEvent *e){
 
@@ -137,10 +160,10 @@ void msgServer::timerEvent(QTimerEvent *e){
         //如果已经连接，则heartbeat：每 2 秒自动回复: R\n
         if(this->socket!=nullptr){
           //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
-            if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0;} Log("检测到连接异常-1，自动断开"); }
-            this->socket->write(RESPONSE,strlen(RESPONSE));
+            if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0; socketDisconnect(); } Log("检测到连接异常(wrong state)，自动断开"); }
+            send(RESPONSE);
             this->socket->waitForBytesWritten();
-            msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear(); Log("检测到连接异常-2，自动断开"); }
+            msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear();socketDisconnect(); Log("检测到连接异常(timeout)，自动断开"); }
         }else if(ipList.size()!=0){
             //如果还没连接：发送ip、端口号、连接密钥的信息
             for(int i=0;i<ipList.size();i++){
@@ -150,7 +173,7 @@ void msgServer::timerEvent(QTimerEvent *e){
                 std::string strTemp= info.toStdString();
                 const char* temp = strTemp.c_str();
                 //qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"  加密后："<<temp;
-                this->udpSocket->writeDatagram(temp,strlen(temp),host,56789);
+                this->udpSocket->writeDatagram(temp,strlen(temp), host, DEFAULT_IP_PORT_UDP_PORT);
                 this->udpSocket->waitForBytesWritten();
             }
         }

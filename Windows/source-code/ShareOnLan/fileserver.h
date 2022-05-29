@@ -60,13 +60,17 @@ public:
     fileServer();
 
 public:
-    const int fileServerListeningPort = 65534;
+    void incomingConnection(FileSocket* socket);
+
+    const int DEFAULT_FILE_SERVER_PORT = 65534;
+    int fileServerListeningPort = DEFAULT_FILE_SERVER_PORT;
     bool ifConnected();
     bool listenOn(int port);
     void closeSocket();
     void serverShutDown();
     bool ifSend;
 
+    void initSocket(FileSocket* socket);
     void sendFile(FileSocket* socket);
     void receiveFile(FileSocket* socket);
 
