@@ -10,9 +10,6 @@
 .externalNativeBuild
 .cxx
 
-
-
-
 # C++ objects and libs
 *.slo
 *.lo
