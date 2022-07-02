@@ -170,7 +170,6 @@ public class FlikerProgressBar extends View implements Runnable{
                 break;
         }
         setMeasuredDimension(widthSpecSize, height);
-        System.out.println("------------------------------on measure");
         if(pgBitmap == null){
             init();
         }

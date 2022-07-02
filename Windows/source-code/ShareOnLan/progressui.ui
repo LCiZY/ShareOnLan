@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>333</width>
-    <height>65</height>
+    <height>90</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -65,7 +65,7 @@
      <x>0</x>
      <y>0</y>
      <width>333</width>
-     <height>65</height>
+     <height>90</height>
     </rect>
    </property>
    <property name="text">
@@ -76,9 +76,9 @@
    <property name="geometry">
     <rect>
      <x>31</x>
-     <y>44</y>
+     <y>50</y>
      <width>271</width>
-     <height>21</height>
+     <height>30</height>
     </rect>
    </property>
    <property name="font">

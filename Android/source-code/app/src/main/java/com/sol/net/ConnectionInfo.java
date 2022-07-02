@@ -3,7 +3,6 @@ package com.sol.net;
 
 import android.net.Uri;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -17,10 +16,6 @@ public class ConnectionInfo {
     public static final String FILEINFORESPONSE = "FILEINFO R";  //PC告知本移动端已接受文件信息
     public static final String REPLACER = "${r}";  //PC告知本移动端已接受文件信息
     public static final String REPLACEN = "${n}";  //PC告知本移动端已接受文件信息
-
-
-    public static HashMap<String,String> receiveFileInfo = new HashMap<>();
-
 
     public static CopyOnWriteArrayList<Uri> filesSendingQueue = new  CopyOnWriteArrayList<>(); // 文件发送队列
     public static String sendFileName; // 当前发送的文件名
@@ -38,12 +33,8 @@ public class ConnectionInfo {
         }
     }
 
-    public static void processReceiveFileInfo(final String info){
-        if(info==null) return;
-        String[] infos = info.split("\\|");
-        for (int i=1;i+1<infos.length;i+=2){
-            receiveFileInfo.put(infos[i],infos[i+1]);
-        }
-    }
+
+
+
 
 }

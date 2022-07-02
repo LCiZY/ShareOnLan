@@ -1,8 +1,6 @@
 package com.sol.net.UdpConnection;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
+import android.util.Log;
 
 import com.sol.config.Config;
 import com.sol.net.tcpConnectionChannel;
@@ -17,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 
 
 public class udpServer extends Thread{
+
+        private static final String TAG = "udpServer";
 
         public  static  boolean runFlag = true;
         public static final int udpListeningPort = 56789;
@@ -39,7 +39,7 @@ public class udpServer extends Thread{
             try{
                 ds = new DatagramSocket(56789);
                 while (runFlag) {
-                    System.out.println("开始监听udp数据包");
+                    Log.d(TAG, "开始监听udp数据包");
                     //创建数据报套接字并将其绑定到本地主机上的指定端口56789（对应发送端创建的端口）
 
                     //创建字节数组以做数据缓冲区
@@ -59,10 +59,10 @@ public class udpServer extends Thread{
                     for(int i=str.length()-1;i>=0;i--){
                        if(0!=(int)str.charAt(i)){str=str.substring(0,i+1); break;}
                     }
-                    System.out.println("udp数据包--"+str+"----");
+                    Log.d(TAG, "udp数据包--"+str+"----");
                     str = utils.decrypt(str);
                     System.out.print("解密数据：");
-                    System.out.println("----"+str+"----");
+                    Log.d(TAG, "----"+str+"----");
                     String[] strs = str.split(" ");
                     if(strs.length!=3) continue;
                     //对str解码得到ip地址和端口号
@@ -84,7 +84,7 @@ public class udpServer extends Thread{
                 if(ds!=null){
                     ds.close();
                 }
-                System.out.println("-----------------------------------------------udp监听线程退出");
+                Log.d(TAG, "-----------------------------------------------udp监听线程退出");
             }
 
 

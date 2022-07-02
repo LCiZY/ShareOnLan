@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileUtils {
+    private static final String TAG = "FileUtils";
+
     private FileUtils() {
     }
 
@@ -86,7 +88,7 @@ public class FileUtils {
                 share.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                 context.startActivity(share);
             } else {
-                System.out.println("分享文件不存在");
+                Log.d(TAG, "分享文件不存在");
             }
         }catch (Exception e){
             ToastUtils.showToast(context, "分享文件失败");

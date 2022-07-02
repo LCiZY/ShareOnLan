@@ -19,13 +19,16 @@ import javax.crypto.spec.SecretKeySpec;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 public class ExampleUnitTest {
+
+    private static final String TAG = "ExampleUnitTest";
+
     @Test
     public void addition_isCorrect() {
 
         String ip = "92.255.1.0";
         //匹配  数字.数字.数字.数字 的形式
         String reg = "((([12][0-9][0-9])|([1-9][0-9])|([0-9]))\\.){3}(([12][0-9][0-9])|([1-9][0-9])|([0-9]))";
-        System.out.println(CheckArgumentUtil.checkIfIpValidate(ip));
+        Log.d(TAG, CheckArgumentUtil.checkIfIpValidate(ip));
 
     }
 
@@ -33,8 +36,8 @@ public class ExampleUnitTest {
     public void test2(){
         String line = "dada= ";
         String[] lineData = line.split("=");
-        System.out.println(lineData[0]);
-        System.out.println(lineData[1]);
+        Log.d(TAG, lineData[0]);
+        Log.d(TAG, lineData[1]);
     }
 
 
@@ -50,7 +53,7 @@ public class ExampleUnitTest {
         for (String key: configurations.keySet() ){
             ini+=(key+"="+configurations.get(key)+"\n");
         }
-        System.out.println(ini);
+        Log.d(TAG, ini);
     }
 
     private static final String ALGORITHM = "AES";
@@ -104,25 +107,25 @@ public class ExampleUnitTest {
         byte[] text_bytes = text.getBytes("UTF-8");
         byte[] pass_bytes = key.getBytes("UTF-8");
 
-        System.out.println("key:" + key);
+        Log.d(TAG, "key:" + key);
 
         byte[] encode = encodeByECB(pass_bytes, text_bytes);
-        System.out.println(Base64.encodeToString(encode, Base64.NO_WRAP));
+        Log.d(TAG, Base64.encodeToString(encode, Base64.NO_WRAP));
 //        // strings encryption
 //                String encrypted = Aes256.encrypt(text, key);
-//                System.out.println(encrypted);
+//                Log.d(TAG, encrypted);
 //
 //        // bytes encryption
 //                byte[] encrypted_bytes = Aes256.encrypt(text_bytes, pass_bytes);
-//                System.out.println(encrypted_bytes);
+//                Log.d(TAG, encrypted_bytes);
 //
 //        // strings decryption
 //                String decrypted = Aes256.decrypt(encrypted, key);
-//                System.out.println(decrypted);
+//                Log.d(TAG, decrypted);
 //
 //        // bytes decryption
 //                byte[] decrypted_bytes = Aes256.decrypt(encrypted_bytes, pass_bytes);
-//                System.out.println(decrypted_bytes);
+//                Log.d(TAG, decrypted_bytes);
     }
 
 }

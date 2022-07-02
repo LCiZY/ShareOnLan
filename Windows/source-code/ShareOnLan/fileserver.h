@@ -80,6 +80,7 @@ signals:
     void sendProgress(qint64);
     void newFileConnection();
     void fileTransferDone();
+    void sendNextFile();
     void currFileInfo(qint64 fileSize, QString fileName);
 
 public slots:

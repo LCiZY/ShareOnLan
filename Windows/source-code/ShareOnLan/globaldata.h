@@ -61,6 +61,7 @@ extern QString FILE_INFO_MSG_HEAD;
 
 FileInfo* parseFileInfoMsg(QString fileInfoMsg);
 QString getFileInfoMsg(QString filePath);
+QFileInfoList GetFileList(QString path);
 FileInfo* buildFileInfo(QString filePath);
 QString formatIPSpace(QString ip);
 

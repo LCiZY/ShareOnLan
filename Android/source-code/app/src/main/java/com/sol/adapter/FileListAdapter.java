@@ -67,7 +67,6 @@ public class FileListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        //System.out.println(data.size());
         if (files.size() > 0 && files.size() > position) {
             File file = new File(files.get(position));
             viewHolder.l_image.setImageLevel(getFileItemIconLevel(FileUtils.getFileSuffix(file)));

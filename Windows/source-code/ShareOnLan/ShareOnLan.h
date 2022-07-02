@@ -51,6 +51,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event);
     void closeEvent(QCloseEvent* event);
     virtual void keyPressEvent(QKeyEvent *ev);
+    void dropEvent(QDropEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event);
 
 public slots:
     void clientChange();
@@ -75,6 +77,7 @@ public slots:
     void hideWindow();
     void changeFileReceiveLocation();
     void openFileLocationFolder();
+    void triggerSendFile();
 
     void showProgressUI();
     void setProgressInfo(qint64 fileSize, QString fileName);

@@ -169,6 +169,8 @@ void fileServer::sendFile(FileSocket* socket){
         sendFileThread->deleteLater();
         if(sendFilesQueue.isEmpty())
             emit fileTransferDone();
+        else
+            emit sendNextFile();
     });
 
     //发送进度

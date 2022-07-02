@@ -23,6 +23,7 @@ public:
 
     void setCurrTaskInfo(qint64 fileSize, QString fileName);
     void showAtBottomRight();
+    void addHeightOnBase(int h);
 
 protected:
     void mouseMoveEvent(QMouseEvent* event);
@@ -47,6 +48,7 @@ private:
 
     int transferCount;
     qint64 dlength;
+    int widgetHeight, bgHeight, tooltipHeight;
 
 
 };

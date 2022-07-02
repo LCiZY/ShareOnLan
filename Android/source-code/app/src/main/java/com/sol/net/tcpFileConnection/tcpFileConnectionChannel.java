@@ -1,10 +1,11 @@
 package com.sol.net.tcpFileConnection;
 
+import android.util.Log;
+
 import com.sol.net.tcpConnectionChannel;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -12,6 +13,7 @@ import java.net.Socket;
 
 public class tcpFileConnectionChannel extends Thread {
 
+    private static final String TAG = "tcpFileConnectionChanne";
 
     public  Socket fileClient = null;
 
@@ -25,6 +27,7 @@ public class tcpFileConnectionChannel extends Thread {
     public  BufferedInputStream bis = null;
 
     public  boolean establishFlag = false;
+    public  boolean transferDoneFlag = false;
     public  float progress = 0;
 
 
@@ -40,7 +43,7 @@ public class tcpFileConnectionChannel extends Thread {
         fileClient = new Socket();
         System.out.print("连接到ip："+tcpConnectionChannel.server_ip);
         System.out.print("  连接到端口："+fileServerPort);
-        System.out.println("  设置超时时间："+FILESOCKETOUTTIME+"s");
+        Log.d(TAG, "  设置超时时间："+FILESOCKETOUTTIME+"s");
         fileClient.connect(new InetSocketAddress(tcpConnectionChannel.server_ip,fileServerPort),tcpConnectionChannel.connectTimeOutValue*1000);
         if(fileClient==null)  { throw new Exception("error:socket error"); }
 
@@ -80,5 +83,13 @@ public class tcpFileConnectionChannel extends Thread {
         cancel = true;
     }
 
+    protected  Runnable callback;
 
+    public Runnable getCallback() {
+        return callback;
+    }
+
+    public void setCallback(Runnable callback) {
+        this.callback = callback;
+    }
 }

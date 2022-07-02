@@ -14,6 +14,7 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
     this->setWindowIcon(QIcon(":/icon/transfer_64.png"));
     this->setWindowFlag(Qt::FramelessWindowHint,true);
     this->setAttribute(Qt::WA_TranslucentBackground,true);
+    this->setAcceptDrops(true);
     QApplication::setQuitOnLastWindowClosed(false);
     QNetworkProxyFactory::setUseSystemConfiguration(false);
 
@@ -51,6 +52,7 @@ void ShareOnLan::serverInit(){
     connect(server,SIGNAL(otherPCReadyReceiveFile()),this,SLOT(otherPCReadyReceiveFile()));
     connect(fileserver,SIGNAL(newFileConnection()),this,SLOT(showProgressUI()));
     connect(fileserver,SIGNAL(fileTransferDone()),this,SLOT(progressUIDestroy()));
+    connect(fileserver,SIGNAL(sendNextFile()),this,SLOT(triggerSendFile()));
     connect(fileserver,SIGNAL(currFileInfo(qint64,QString)),this,SLOT(setProgressInfo(qint64,QString)));
     connect(fileserver,SIGNAL(receiveProgress(qint64)),this,SLOT(progressUIChange(qint64)));
     connect(fileserver,SIGNAL(sendProgress(qint64)),this,SLOT(progressUIChange(qint64)));
@@ -244,6 +246,8 @@ void ShareOnLan::clientChange(){
             progressUIDestroy();
         }
         fileserver->closeSocket();
+        sendFilesQueue.clear();
+        receiveFilesQueue.clear();
     }
 }
 
@@ -306,6 +310,7 @@ void ShareOnLan::on_SendToPhone(){
 void ShareOnLan::on_SendFile(){
     if(!this->server->ifConnected()) { QMessageBox::about(nullptr,"失败","未连接至手机");return;}
 
+    QStringList filePaths;
     QString filePath = "";
 
     const QClipboard *clipboard = QApplication::clipboard(); //获取剪切版内容
@@ -314,27 +319,80 @@ void ShareOnLan::on_SendFile(){
     const  QMimeData *mimeData = clipboard->mimeData();
     if(mimeData->hasUrls()){ // 如果剪贴板有文件，询问用户是否发送此文件
        QList<QUrl> urls =  mimeData->urls();
-       QString urlPath = urls.at(0).toLocalFile();
-       QFile file(urlPath);
-       if(file.exists()){
-           QString dlgTitle="发送文件";
-           QString strInfo=QString("检测到剪贴板中的文件: %1 是否发送此文件?").arg(urlPath);
-           int result = QMessageBox::question(nullptr, dlgTitle, strInfo, "是", "选择文件", "取消");
-           if (result==0){
-               filePath = urlPath;
-           }else if(result==1){
+       bool exist = true;
+       for(int i = 0; i < urls.size(); i++){
+           QString urlPath = urls.at(i).toLocalFile();
+           QFileInfo file(urlPath);
+           if(!file.exists()) {exist = false; break;}
+           if(file.isFile()){
+               filePaths.append(urlPath);
+           }else{
+              QFileInfoList infoList = GetFileList(urlPath);
+              for(QFileInfo info: infoList){
+                  filePaths.append(info.absoluteFilePath());
+              }
            }
-           else return;
-       }else{
-            Log(QString("剪贴板中的文件 %1 不存在！").arg(urlPath));
        }
-    }
-    if(filePath == "")
-        filePath = QFileDialog::getOpenFileName(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
-    if(filePath == "") return;
+       if(!filePaths.isEmpty()){
+           QString dlgTitle="发送文件";
+           QString strInfo=QString("检测到剪贴板中的 %1 等共 %2 个文件，是否发送?").arg(filePaths.at(0)).arg(QString::number(filePaths.size()));
+           int result = QMessageBox::question(nullptr, dlgTitle, strInfo, "是", "选择其他文件", "取消");
+           if (result==0){ //是
+               if(!exist){
+                   Log(QString("剪贴板中的文件不存在！"));
+                   QMessageBox::critical(nullptr, "错误", "文件不存在");
+                   return;
+               }
+           }else if(result==1){//选择文件
+               filePaths.clear();
+           }//取消
+           else return;
+       }
 
+    }
+
+    if(filePaths.isEmpty())
+        filePaths = QFileDialog::getOpenFileNames(nullptr,"请选择要发送的文件",QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+    if(filePaths.isEmpty()) return;
+
+    for(QString filePath: filePaths){
+        sendFilesQueue.push_back(buildFileInfo(filePath));
+    }
+    triggerSendFile();
+}
+
+
+/* dropEvent 过滤无用urls，并将有效部分交给文件读取方式加载 */
+void ShareOnLan::dropEvent(QDropEvent *event)
+{
+    QList<QUrl> urls = event->mimeData()->urls();
+    QStringList filePaths;
+    for(int i = 0; i < urls.size(); i++){
+        QString urlPath = urls.at(i).toLocalFile();
+        QFileInfo file(urlPath);
+        if(file.isFile()){
+            filePaths.append(urlPath);
+        }else{
+           QFileInfoList infoList = GetFileList(urlPath);
+           for(QFileInfo info: infoList){
+               filePaths.append(info.absoluteFilePath());
+           }
+        }
+    }
+
+    if(filePaths.isEmpty()) return;
+
+    for(QString filePath: filePaths){
+        sendFilesQueue.push_back(buildFileInfo(filePath));
+    }
+    triggerSendFile();
+}
+
+
+void ShareOnLan::triggerSendFile(){
+    if(sendFilesQueue.isEmpty()) return;
     this->fileserver->ifSend = true;
-    sendFilesQueue.push_back(buildFileInfo(filePath));
+    QString filePath = sendFilesQueue.at(0)->filePath;
     Log(QString("发送文件：") + filePath);
     this->server->sendMsg(FILE_INFO_MSG_HEAD + getFileInfoMsg(filePath));
 }
@@ -458,6 +516,13 @@ void ShareOnLan::progressUIDestroy(){
 
 
 
+/* dragEnterEvent 过滤无用Event */
+void ShareOnLan::dragEnterEvent(QDragEnterEvent *event)
+{
+    if(event->mimeData()->hasUrls()){
+        event->acceptProposedAction();
+    }
+}
 
 void ShareOnLan::keyPressEvent(QKeyEvent *ev)
 {

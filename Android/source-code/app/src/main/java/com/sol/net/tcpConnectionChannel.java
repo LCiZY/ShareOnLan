@@ -1,6 +1,6 @@
 package com.sol.net;
 
-import com.sol.MainActivity;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -10,7 +10,7 @@ import java.net.Socket;
 
 public class tcpConnectionChannel extends Thread{
 
-
+    private static final String TAG = "tcpConnectionChannel";
 
     public static final int connectTimeOutValue = 3;  //连接超时时间
     public static final int readTimeOutValue = 10;  //数据读取超时时间
@@ -33,7 +33,7 @@ public class tcpConnectionChannel extends Thread{
 
         if (client == null) client = new Socket();
         client.connect(new InetSocketAddress(server_ip,server_port),connectTimeOutValue*1000);
-        System.out.println("client socket isConnected:  "+ client.isConnected());
+        Log.d(TAG, "client socket isConnected:  "+ client.isConnected());
 
         tcpConnectionChannel.server_ip = server_ip;
         tcpConnectionChannel.server_port = server_port;
