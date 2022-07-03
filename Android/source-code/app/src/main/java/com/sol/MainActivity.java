@@ -12,6 +12,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
@@ -44,6 +45,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.developer.filepicker.controller.DialogSelectionListener;
+import com.developer.filepicker.model.DialogConfigs;
+import com.developer.filepicker.model.DialogProperties;
+import com.developer.filepicker.view.FilePickerDialog;
 import com.sol.adapter.FileListAdapter;
 import com.sol.bean.FileInfo;
 import com.sol.component.FlikerProgressBar;
@@ -75,6 +80,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static android.os.Environment.DIRECTORY_DOWNLOADS;
 import static com.sol.net.ConnectionInfo.clipDatas;
 
 
@@ -87,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static int widthPixels;
     public static int heightPixels;
-
 
     private PopupMenu popupMenu;
     private ImageView settingIcon;
@@ -102,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout page1;
     private LinearLayout page2;
     private touchOnPagesListener pagesListener;
-    private Button btn_send;
+    private Button sendFileBtn;
     private CheckBox checkBox_ifEnableAutoSend;
     private TextView secretTextView;
     private CircleRefreshLayout mRefreshLayout;
@@ -111,7 +116,15 @@ public class MainActivity extends AppCompatActivity {
     private FileListAdapter fileListAdapter;
     private ImageButton homeTab;
     private ImageButton fileTab;
-
+    //初始化右上角菜单点击“剪贴记录”后的弹窗
+    private AlertDialog historyAlertDialog;
+    private View popupMenuWindowView;
+    private ListView hisListView;
+    private ArrayAdapter<String> historyAdapter;
+    private View fileTransferProgressView;
+    private AlertDialog fileTransferProgressDialog;
+    private FlikerProgressBar transfer_progress_bar;
+    private TextView sendStatusTextView;
 
     public tcpFileConnectionChannel sendFileConnection;
     public LinkedList<tcpFileConnectionChannel> receiveFileConnections = new LinkedList<>();
@@ -122,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
     public static String serverIp = null;
     public static int serverPort = 0;
 
+    private Handler mainHandler;
 
     public DetectThread detectThread = null;
     public Runnable uiThread;  //改变UI使用的线程
@@ -142,60 +156,16 @@ public class MainActivity extends AppCompatActivity {
             this.startActivity(intent);
             return;
         }
-
-        Config.conFigInit(this);
-
-        Log.d(TAG, "getFilesDir().getAbsolutePath():" + this.getFilesDir().getAbsolutePath());
-
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_main);
-
-        //请求储存权限
-//        verifyStoragePermissions(MainActivity.this);
-        requestReadWriteFilePermissions();
-
-        //得到剪贴板
-        clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
-        //得到设备信息：如宽高
-        getServiceInfo();
-
-        popupMenu = new PopupMenu(this);
-        settingIcon = findViewById(R.id.more_dots);
-        pagesScrollView = findViewById(R.id.pagesScrollView);
-        pages = findViewById(R.id.pages);
-        page1 = findViewById(R.id.page1);
-        page2 = findViewById(R.id.page2);
-        autoConnectImgBtn = findViewById(R.id.autoConnectImgBtn);
-        connnecting_ani = findViewById(R.id.connnecting_ani);
-        ifConnectImageView = findViewById(R.id.ifConnectImageView);
-        ifConnectTextView = findViewById(R.id.ifConnectTextView);
-        edit_ip = findViewById(R.id.edit_ip);
-        edit_port = findViewById(R.id.edit_port);
-        btn_send = findViewById(R.id.sendBtn);
-        checkBox_ifEnableAutoSend = findViewById(R.id.checkBox_ifEnableAutoSend);
-
-        secretTextView = findViewById(R.id.secret);
-        mRefreshLayout = findViewById(R.id.refresh_layout);
-        fileListView = findViewById(R.id.fileList);
-        noFileTextView = findViewById(R.id.noFileTextView);
-        homeTab = findViewById(R.id.homeTab);
-        fileTab = findViewById(R.id.fileTab);
-
-        UIInit();
-
-
-        setUpListener();
-
-        runnableInit();
-
-        popup_menu_window_init();
-
-        new udpServer(uiSetIpPortRunnable).start();
-
-
-        uiChange(); //初始化连接状态部分的界面状态
-        Log.d(TAG, "onCreate----------------------");
         Log.d(TAG, "android.os.Process.myPid(): " + android.os.Process.myPid());
+
+        Log.d(TAG, "onCreate started----------------------");
+
+        init();
+        UIInit();
+        setUpListener();
+        postInit();
+
+        Log.d(TAG, "onCreate finished----------------------");
     }
 
     @Override
@@ -245,14 +215,10 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    private float startX, startY;
-
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            startX = ev.getX();
-            startY = ev.getY();
             if (pagesListener != null)
                 setMotionEventX(pagesListener, ev.getX());
             if (edit_ip != null && edit_port != null) {
@@ -298,20 +264,66 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onSendFileBtnClicked(View view) {
-        final AlertDialog alertDialog = new AlertDialog.Builder(this)
-                .setTitle("发送文件至电脑")
-                .setIcon(R.drawable.fly)
-                .setView(R.layout.send_file_specification)
-                .create();
-        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
-        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                alertDialog.dismiss();
-            }
-        });
-        alertDialog.show();
-        UIUtils.setDialogTitleColor(alertDialog, getResources().getColor(R.color.textColor));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            sendFileBtn.setEnabled(false);
+            String dir = Environment.getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).getParent();
+            String dir1 = getFilesDir().getParent();
+            DialogProperties properties = new DialogProperties();
+            properties.selection_mode = DialogConfigs.MULTI_MODE;
+            properties.selection_type = DialogConfigs.FILE_SELECT;
+            properties.root = new File(dir);
+            properties.error_dir = new File(dir1);
+            properties.offset = new File(DialogConfigs.DEFAULT_DIR);
+            properties.extensions = null;
+            properties.show_hidden_files = true;
+            FilePickerDialog dialog = new FilePickerDialog(MainActivity.this, properties);
+            dialog.setTitle("选择要发送的文件");
+            dialog.setNegativeBtnName("取消");
+            dialog.setPositiveBtnName("确定");
+
+            dialog.setDialogSelectionListener(new DialogSelectionListener() {
+                @Override
+                public void onSelectedFilePaths(String[] files) {
+                    //files is the array of the paths of files selected by the Application User.
+                    for (String file : files) {
+                        Log.d(TAG, "onSelectedFilePaths: " + file);
+                        Uri uri = Uri.fromFile(new File(file));
+                        ConnectionInfo.filesSendingQueue.add(uri);
+                    }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            notifySendFile(ConnectionInfo.filesSendingQueue);
+                        }
+                    }).start();
+                }
+            });
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.show(); // slowly
+
+            Button pBtn = dialog.findViewById(R.id.select);
+            pBtn.setTextColor(getResources().getColor(R.color.textColor));
+            Button cBtn = dialog.findViewById(R.id.cancel);
+            cBtn.setTextColor(getResources().getColor(R.color.lightTextColor));
+            sendFileBtn.setEnabled(true);
+        } else {
+            final AlertDialog alertDialog = new AlertDialog.Builder(this)
+                    .setTitle("发送文件至电脑")
+                    .setIcon(R.drawable.fly)
+                    .setView(R.layout.send_file_specification)
+                    .create();
+            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
+            alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "确定", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    alertDialog.dismiss();
+                }
+            });
+            alertDialog.show();
+            UIUtils.setDialogTitleColor(alertDialog, getResources().getColor(R.color.textColor));
+        }
+
 
     }
 
@@ -388,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
                 readChannelThread = new tcpConnectionReadChannelThread(this, uiThread, MainActivity.this);
                 readChannelThread.start();
                 tcpConnectionChannel.r_runFlag = true;
-                writeChannelThread = new tcpConnectionWriteChannelThread(this);
+                writeChannelThread = new tcpConnectionWriteChannelThread(this, mainHandler);
                 writeChannelThread.start();
                 tcpConnectionChannel.w_runFlag = true;
             }
@@ -396,7 +408,7 @@ public class MainActivity extends AppCompatActivity {
             tcpConnectionChannel.closeConnection();
             //  e.printStackTrace();
             Log.d(TAG, "---------------------------------尝试连接至目标主机失败：连接超时-----------------------------------");
-            Log.d(TAG, "error msg:"+e.getMessage());
+            Log.d(TAG, "error msg:" + e.getMessage());
         } catch (Exception e1) {
             tcpConnectionChannel.closeConnection();
             e1.printStackTrace();
@@ -521,14 +533,6 @@ public class MainActivity extends AppCompatActivity {
         return granted;
     }
 
-
-    public void getServiceInfo() {
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
-        widthPixels = outMetrics.widthPixels;
-        heightPixels = outMetrics.heightPixels;
-        Log.d(TAG, "device's width:" + widthPixels + ", height:" + heightPixels);
-    }
 
     /**
      * 检测intent中携带的文件，如果不在发送队列中则发送
@@ -719,8 +723,84 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void init(){
+        Config.conFigInit(this);
 
-    public void UIInit() {
+        Log.d(TAG, "getFilesDir().getAbsolutePath():" + this.getFilesDir().getAbsolutePath());
+
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.activity_main);
+
+        //请求储存权限
+//        verifyStoragePermissions(MainActivity.this);
+        requestReadWriteFilePermissions();
+
+        //得到剪贴板
+        clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
+
+        //得到设备信息：如宽高
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+        widthPixels = outMetrics.widthPixels;
+        heightPixels = outMetrics.heightPixels;
+        Log.d(TAG, "device's width:" + widthPixels + ", height:" + heightPixels);
+
+
+        uiThread = new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        uiChange();
+                    }
+                });
+            }
+        };
+        uiSetIpPortRunnable = new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        uiSetIpPort(udpServer.ip, udpServer.port);
+                        Log.d(TAG, "已自动识别并设置IP与端口号");
+                    }
+                });
+            }
+        };
+        listViewRunnable = new Runnable() {
+            @Override
+            public void run() {
+                fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
+            }
+        };
+    }
+
+
+    private void UIInit() {
+
+        popupMenu = new PopupMenu(this);
+        settingIcon = findViewById(R.id.more_dots);
+        pagesScrollView = findViewById(R.id.pagesScrollView);
+        pages = findViewById(R.id.pages);
+        page1 = findViewById(R.id.page1);
+        page2 = findViewById(R.id.page2);
+        autoConnectImgBtn = findViewById(R.id.autoConnectImgBtn);
+        connnecting_ani = findViewById(R.id.connnecting_ani);
+        ifConnectImageView = findViewById(R.id.ifConnectImageView);
+        ifConnectTextView = findViewById(R.id.ifConnectTextView);
+        edit_ip = findViewById(R.id.edit_ip);
+        edit_port = findViewById(R.id.edit_port);
+        sendFileBtn = findViewById(R.id.sendFileBtn);
+        checkBox_ifEnableAutoSend = findViewById(R.id.checkBox_ifEnableAutoSend);
+
+        secretTextView = findViewById(R.id.secret);
+        mRefreshLayout = findViewById(R.id.refresh_layout);
+        fileListView = findViewById(R.id.fileList);
+        noFileTextView = findViewById(R.id.noFileTextView);
+        homeTab = findViewById(R.id.homeTab);
+        fileTab = findViewById(R.id.fileTab);
 
         if (this.getApplicationContext().getResources().getConfiguration().uiMode == 0x21) {//深色0x21
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -763,14 +843,16 @@ public class MainActivity extends AppCompatActivity {
             edit_port.setText(serverPort + "");
         }
 
+        //是否自动发送剪贴板文字checkbox
         checkBox_ifEnableAutoSend.setChecked(Config.getConfiguration("enableAutoSend").contentEquals("true"));
         ifClipChangedSend = checkBox_ifEnableAutoSend.isChecked();
         if (this.checkBox_ifEnableAutoSend.isChecked())
             enableAutoSend(this.checkBox_ifEnableAutoSend);
 
+        //密钥
         secretTextView.setText(Config.getConfiguration("secret"));
 
-        //adapter
+        //接收到的文件列表
         fileListAdapter = new FileListAdapter(MainActivity.this);
         fileListView.setAdapter(fileListAdapter);
         fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
@@ -778,149 +860,7 @@ public class MainActivity extends AppCompatActivity {
         //底部菜单栏的按钮图标
         fileTab.setImageLevel(3);
 
-        fileDialogInit();
-    }
-
-
-    @SuppressLint("ClickableViewAccessibility")
-    private void setUpListener() {
-
-        dotTouchListener dottouchListener = new dotTouchListener();
-        settingIcon.setOnTouchListener(dottouchListener);
-
-        tabBtnListener tabbtnListener = new tabBtnListener();
-        homeTab.setOnTouchListener(tabbtnListener);
-        fileTab.setOnTouchListener(tabbtnListener);
-
-        pagesListener = new touchOnPagesListener();
-        pagesScrollView.setOnTouchListener(pagesListener);
-        editTextEditListener editListener = new editTextEditListener();
-        edit_ip.addTextChangedListener(editListener);
-        edit_port.addTextChangedListener(editListener);
-
-
-        mRefreshLayout.setOnRefreshListener(
-                new CircleRefreshLayout.OnCircleRefreshListener() {
-                    @Override
-                    public void refreshing() {
-                        // do something when refresh starts
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
-                                try {
-                                    Thread.sleep(1200);
-                                } catch (Exception e) {
-                                } finally {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mRefreshLayout.finishRefreshing();
-                                            mRefreshLayout.backtotop();//转移到主线程里做
-                                        }
-                                    });
-                                }
-                            }
-                        }).start();
-                    }
-
-                    @Override
-                    public void completeRefresh() {
-                        // do something when refresh complete
-                        toastOnUI("刷新成功~");
-                    }
-                });
-
-        fileListView.setOnItemClickListener(new fileListViewOnTouchListener());
-
-
-    }
-
-
-    public void runnableInit() {
-
-        uiThread = new Runnable() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        uiChange();
-                    }
-                });
-            }
-        };
-        uiSetIpPortRunnable = new Runnable() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        uiSetIpPort(udpServer.ip, udpServer.port);
-                        Log.d(TAG, "已自动识别并设置IP与端口号");
-                    }
-                });
-            }
-        };
-
-        listViewRunnable = new Runnable() {
-            @Override
-            public void run() {
-                fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
-            }
-        };
-    }
-
-    //初始化右上角菜单点击“剪贴记录”后的弹窗
-    AlertDialog historyAlertDialog;
-    View view;
-    ListView hisListView;
-    ArrayAdapter<String> adapter;
-    public static Handler handler;
-
-    public void popup_menu_window_init() {
-        handler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                adapter.notifyDataSetChanged();
-            }
-        };
-        view = getLayoutInflater().inflate(R.layout.popup_menu_window, null);
-
-        historyAlertDialog = new AlertDialog.Builder(MainActivity.this)
-                .setTitle("剪贴板历史记录")
-                .setIcon(R.drawable.clip)
-                .setView(view)
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface paramAnonymousDialogInterface,
-                                        int paramAnonymousInt) {
-                    }
-                }).create();
-        historyAlertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
-        hisListView = view.findViewById(R.id.hisListView);
-        adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, clipDatas);
-
-        hisListView.setAdapter(adapter);
-        hisListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                disableClipChangeSend();
-                toastOnUI("复制成功~");
-                MainActivity.clipboard.setText(clipDatas.get(position));
-                enableClipChangeSend();
-            }
-        });
-
-    }
-
-    public View fileTransferProgressView;
-    public AlertDialog fileTransferProgressDialog;
-    public FlikerProgressBar transfer_progress_bar;
-    public TextView sendStatusTextView;
-
-    public void fileDialogInit() {
+        //文件传输进度对话框
         fileTransferProgressView = getLayoutInflater().inflate(R.layout.file_transfer_progress, null);
         transfer_progress_bar = fileTransferProgressView.findViewById(R.id.transfer_progress_bar);
         sendStatusTextView = fileTransferProgressView.findViewById(R.id.sendStatusTextView);
@@ -953,6 +893,116 @@ public class MainActivity extends AppCompatActivity {
                 }).create();
         fileTransferProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
 
+
+        //右上角弹框
+        popupMenuWindowView = getLayoutInflater().inflate(R.layout.popup_menu_window, null);
+        //剪贴板历史对话框
+        historyAlertDialog = new AlertDialog.Builder(MainActivity.this)
+                .setTitle("剪贴板历史记录")
+                .setIcon(R.drawable.windmill)
+                .setView(popupMenuWindowView)
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface paramAnonymousDialogInterface,
+                                        int paramAnonymousInt) {
+                    }
+                }).create();
+        historyAlertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.bgColor)));
+        hisListView = popupMenuWindowView.findViewById(R.id.hisListView);
+        historyAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, clipDatas);
+
+        hisListView.setAdapter(historyAdapter);
+        hisListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                disableClipChangeSend();
+                toastOnUI("复制成功~");
+                MainActivity.clipboard.setText(clipDatas.get(position));
+                enableClipChangeSend();
+            }
+        });
+    }
+
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setUpListener() {
+
+        dotTouchListener dottouchListener = new dotTouchListener();
+        settingIcon.setOnTouchListener(dottouchListener);
+
+        tabBtnListener tabbtnListener = new tabBtnListener();
+        homeTab.setOnTouchListener(tabbtnListener);
+        fileTab.setOnTouchListener(tabbtnListener);
+
+        pagesListener = new touchOnPagesListener();
+        pagesScrollView.setOnTouchListener(pagesListener);
+        editTextEditListener editListener = new editTextEditListener();
+        edit_ip.addTextChangedListener(editListener);
+        edit_port.addTextChangedListener(editListener);
+
+
+        mRefreshLayout.setOnRefreshListener(
+                new CircleRefreshLayout.OnCircleRefreshListener() {
+                    @Override
+                    public void refreshing() {
+                        // do something when refresh starts
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                fileListChanged(FileUtils.getFilesAllName(Config.RECEIVEFILEDIRETORY));
+                                try {
+                                    Thread.sleep(1200);
+                                } catch (Exception ignored) {
+                                } finally {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mRefreshLayout.finishRefreshing();
+                                            mRefreshLayout.backtotop();//转移到主线程里做
+                                        }
+                                    });
+                                }
+                            }
+                        }).start();
+                    }
+
+                    @Override
+                    public void completeRefresh() {
+                        // do something when refresh complete
+                        toastOnUI("刷新成功~");
+                    }
+                });
+
+        fileListView.setOnItemClickListener(new fileListViewOnTouchListener());
+
+
+    }
+
+    public static final int MSG_update_history_list = 100;
+
+    @SuppressLint("HandlerLeak")
+    private void postInit(){
+        mainHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what){
+                    case MSG_update_history_list:
+                        historyAdapter.notifyDataSetChanged();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+        ToastUtils.mainHandler = mainHandler;
+
+        new udpServer(uiSetIpPortRunnable).start();
+        uiChange(); //初始化连接状态部分的界面状态
+    }
+
+    public Handler getHandler(){
+        return mainHandler;
     }
 
 
@@ -1048,7 +1098,7 @@ public class MainActivity extends AppCompatActivity {
                         detectThread.start();
                         toastOnUI("重置成功~");
                     } else if (PopupMenu.MENUITEM.CLIPHISTORY == item) {
-                        handler.sendEmptyMessageDelayed(100, 1000);
+                        mainHandler.sendEmptyMessageDelayed(MSG_update_history_list, 1000);
                         historyAlertDialog.show();
                         UIUtils.setDialogTitleColor(historyAlertDialog, getResources().getColor(R.color.textColor));
                     } else if (PopupMenu.MENUITEM.DETELEALL == item) {
@@ -1306,7 +1356,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     Thread.sleep(1000);
-                } catch (Exception ignored) { }
+                } catch (Exception ignored) {
+                }
                 // 勾选了界面的剪贴板检测、且没有被其他模块屏蔽（if_shield_clip_detect 不为true时）才会发送
                 if (ifClipChangedSend) {
                     if (clipboard.getText() != null)
@@ -1314,7 +1365,7 @@ public class MainActivity extends AppCompatActivity {
                             if (!if_shield_clip_detect) {
                                 sendMessage(getSystemInfo.getClipboardContent(self));
                                 clipDatas.addFirst(clipboard.getText().toString());
-                                handler.sendEmptyMessageDelayed(100, 0);
+                                mainHandler.sendEmptyMessageDelayed(MSG_update_history_list, 0);
                                 Log.d(TAG, "检测到剪贴板文本变化，发送至PC");
                             }
                             preClipBoardText = clipboard.getText().toString();

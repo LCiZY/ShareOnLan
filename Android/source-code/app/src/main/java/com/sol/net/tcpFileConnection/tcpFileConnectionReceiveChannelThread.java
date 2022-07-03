@@ -34,9 +34,9 @@ public class tcpFileConnectionReceiveChannelThread extends tcpFileConnectionChan
             String fileName = info.fileName;
 
             File directory = new File(Config.RECEIVEFILEDIRETORY);
-            if (!directory.exists()){
+            if (!directory.exists()) {
                 boolean mkdir = directory.mkdir();
-                if (!mkdir){
+                if (!mkdir) {
                     Log.e(TAG, "run: 创建目录失败!");
                     return;
                 }
@@ -74,7 +74,7 @@ public class tcpFileConnectionReceiveChannelThread extends tcpFileConnectionChan
                 new Thread(MainActivity.listViewRunnable).start();
                 nextFileFlag = true;
                 transferDoneFlag = true;
-                if (callback!=null) callback.run();
+                if (callback != null) callback.run();
             }
         }
 

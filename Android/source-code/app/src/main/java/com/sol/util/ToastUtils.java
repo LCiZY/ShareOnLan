@@ -1,11 +1,13 @@
 package com.sol.util;
 
 import android.content.Context;
+import android.os.Handler;
 import android.widget.Toast;
-import static com.sol.MainActivity.handler;
+
 public class ToastUtils {
+    public static Handler mainHandler;
     public static void showToast(final Context context, final String msg){
-        handler.post(new Runnable() {
+        mainHandler.post(new Runnable() {
             @Override
             public void run() {
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
@@ -13,7 +15,7 @@ public class ToastUtils {
         });
     }
     public static void showToast(final Context context, final int stringID){
-        handler.post(new Runnable() {
+        mainHandler.post(new Runnable() {
             @Override
             public void run() {
                 showToast(context, context.getString(stringID));

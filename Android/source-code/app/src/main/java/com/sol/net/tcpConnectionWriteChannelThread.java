@@ -2,13 +2,13 @@ package com.sol.net;
 
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
+import com.sol.MainActivity;
 import com.sol.util.utils;
 
 import java.util.LinkedList;
-
-import static com.sol.MainActivity.handler;
 
 public class tcpConnectionWriteChannelThread extends tcpConnectionChannel {
 
@@ -16,9 +16,11 @@ public class tcpConnectionWriteChannelThread extends tcpConnectionChannel {
 
     LinkedList<String> msgs = new LinkedList<>();
     private Context ctx;
+    private Handler mainHandler;
 
-    public tcpConnectionWriteChannelThread(Context context) {
+    public tcpConnectionWriteChannelThread(Context context, Handler handler) {
         ctx = context;
+        mainHandler = handler;
     }
 
     public void send(String msg) {
@@ -48,16 +50,18 @@ public class tcpConnectionWriteChannelThread extends tcpConnectionChannel {
                 out.print(utils.isEmpty(msg) ? ConnectionInfo.RESPONSE : msg);
                 out.flush();
 
-                if (!msg.contentEquals("R\n")) {
-                    //记录到剪贴板历史
+                if (!msg.contentEquals(ConnectionInfo.RESPONSE+"\n")) {
                     Log.d(TAG, "----------------发送文本：" + msg);
-                    try {
-                        if (ConnectionInfo.clipDatas.isEmpty() || !msg.contentEquals(ConnectionInfo.clipDatas.getFirst())) {
-                            ConnectionInfo.clipDatas.addFirst(msg);
-                            handler.sendEmptyMessageDelayed(100, 0);
-                        }
-                    } catch (Exception e) {
+                    //记录到剪贴板历史
+                    if (msg.indexOf(ConnectionInfo.FILEINFOCONTROLMESSAGE) != 0) {
+                        try {
+                            if (ConnectionInfo.clipDatas.isEmpty() || !msg.contentEquals(ConnectionInfo.clipDatas.getFirst())) {
+                                ConnectionInfo.clipDatas.addFirst(msg);
+                                mainHandler.sendEmptyMessageDelayed(MainActivity.MSG_update_history_list, 0);
+                            }
+                        } catch (Exception ignored) { }
                     }
+
                 }
 
             }
