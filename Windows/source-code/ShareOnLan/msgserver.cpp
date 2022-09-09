@@ -52,8 +52,8 @@ void msgServer::socketDisconnect(){
         this->socket->deleteLater();
         this->socket = nullptr;
         //清空文件接收队列
-        receiveFilesQueue.clear();
-        sendFilesQueue.clear();
+        AppContext::receiveFilesQueue.clear();
+        AppContext::sendFilesQueue.clear();
         //恢复监听
         resumeAccepting();
         //发送client改变消息
@@ -65,31 +65,31 @@ void msgServer::socketDisconnect(){
 void msgServer::readMsg(){
 
     if(this->socket != nullptr)
-    while (this->socket->bytesAvailable()>0) {
-        int length = this->socket->bytesAvailable();
-        char* buf = new char[length+1];
-        this->socket->read(buf,length); buf[length]='\0';
-        lastMsg =QString::fromUtf8(buf);
+        while (this->socket->bytesAvailable()>0) {
+            int length = this->socket->bytesAvailable();
+            char* buf = new char[length+1];
+            this->socket->read(buf,length); buf[length]='\0';
+            lastMsg =QString::fromUtf8(buf);
 
 
-        if(lastMsg.indexOf(FILE_INFO_MSG_HEAD)==0){//收到文件信息
-           log::info("%s", (tr("接收到移动端文件信息：")+lastMsg).toStdString().c_str());
-           FileInfo* rt = utils::parseFileInfoMsg(lastMsg);
-           receiveFilesQueue.enqueue(rt);
-           send(FILEINFORESPONSE);
-        }else if(lastMsg.compare(FILEINFORESPONSE)==0){//对方已经收到文件信息了
-            emit otherPCReadyReceiveFile();
-        }else if(lastMsg.compare(RESPONSE)==0){//心跳包
-           if(this->msgHeartStack.size()) this->msgHeartStack.pop();
-        }else{//文本信息，写入剪贴板
-            log::info("%s",(tr("接收到移动端文本消息：")+lastMsg).toStdString().c_str());
-            QClipboard *board = QApplication::clipboard();
-            board->setText(lastMsg);msgList.append(lastMsg);
-            //自动回复: R\n
-            send(RESPONSE);
+            if(lastMsg.indexOf(AppContext::FileInfoMsgPreffix)==0){//收到文件信息
+                log::info("%s", (tr("接收到移动端文件信息：")+lastMsg).toStdString().c_str());
+                FileInfo* rt = utils::parseFileInfoMsg(lastMsg);
+                AppContext::receiveFilesQueue.enqueue(rt);
+                send(FILEINFORESPONSE);
+            }else if(lastMsg.compare(FILEINFORESPONSE)==0){//对方已经收到文件信息了
+                emit otherPCReadyReceiveFile();
+            }else if(lastMsg.compare(RESPONSE)==0){//心跳包
+                if(this->msgHeartStack.size()) this->msgHeartStack.pop();
+            }else{//文本信息，写入剪贴板
+                log::info("%s",(tr("接收到移动端文本消息：")+lastMsg).toStdString().c_str());
+                QClipboard *board = QApplication::clipboard();
+                board->setText(lastMsg);msgList.append(lastMsg);
+                //自动回复: R\n
+                send(RESPONSE);
+            }
+
         }
-
-    }
 
 }
 
@@ -160,20 +160,20 @@ void msgServer::timerEvent(QTimerEvent *e){
     if(checkClientAliveTimerID == e->timerId()){
         //如果已经连接，则heartbeat：每 2 秒自动回复: R\n
         if(this->socket!=nullptr){
-          //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
+            //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
             if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0; socketDisconnect(); } log::error("检测到连接异常(wrong state)，自动断开"); }
             send(RESPONSE);
             this->socket->waitForBytesWritten();
             msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear();socketDisconnect(); log::error("检测到连接异常(timeout)，自动断开"); }
-        }else if(ipList.size()!=0){
+        }else if(AppContext::ipList.size()!=0){
             //如果还没连接：发送ip、端口号、连接密钥的信息
-            for(int i=0;i<ipList.size();i++){
-                netInfoStr = ipList.at(i)+tr(" ")+conf->getConfig("port")+tr(" ");
-                QHostAddress host  = QHostAddress(brocastList.at(i));
-                QString info = encrypt(netInfoStr+conf->getConfig("secret"));
+            for(int i=0;i<AppContext::ipList.size();i++){
+                netInfoStr = AppContext::ipList.at(i)+tr(" ")+setting->get(UserSetting::Item::PORT)+tr(" ");
+                QHostAddress host  = QHostAddress(AppContext::brocastList.at(i));
+                QString info = encrypt(netInfoStr+setting->get(UserSetting::Item::SECRET));
                 std::string strTemp= info.toStdString();
                 const char* temp = strTemp.c_str();
-                //qDebug()<<"发送UDP报文："<<netInfoStr+conf->getConfig("secret")+"  加密后："<<temp;
+                //qDebug()<<"发送UDP报文："<<netInfoStr+setting->get(UserSetting::Item::SECRET)+"  加密后："<<temp;
                 this->udpSocket->writeDatagram(temp,strlen(temp), host, DEFAULT_IP_PORT_UDP_PORT);
                 this->udpSocket->waitForBytesWritten();
             }
@@ -181,20 +181,26 @@ void msgServer::timerEvent(QTimerEvent *e){
     }
 
     /**检查网卡信息是否变化*/
-    if(checkIPClientTimerID == e->timerId()){
-        getLanBrocastAddress_1();
-        if(ipList_Curr.size()!=ipList.size()){/**发送信号使UI更新托盘信息*/ emit(ipChange()); log::info("%s","网卡数量改变，更新托盘ToolTip"); }
-        else {
+    if(checkIPClientTimerID == e->timerId()) {
+        getCurrIPList();
+        bool networkChange = false;
+        if(AppContext::ipListCurr.size()!=AppContext::ipList.size()){
+            networkChange = true;
+        } else {
             bool flag = true;
-            for(int i=0;i<ipList_Curr.size();i++){
+            for(int i=0;i<AppContext::ipListCurr.size();i++) {
                 bool flag_1 = false;
-                for(int j=0;j<ipList.size();j++){
-                    if(ipList_Curr.at(i)==ipList.at(j)) {flag_1 = true; break;}
+                for(int j=0;j<AppContext::ipList.size();j++){
+                    if(AppContext::ipListCurr.at(i)==AppContext::ipList.at(j)) {flag_1 = true; break;}
                 }
                 flag = flag & flag_1;
             }
-            /**发送信号使UI更新托盘信息*/
-            if(!flag) {emit(ipChange()); log::info("%s","网卡IP改变，更新托盘ToolTip");}
+            networkChange = !flag;
+        }
+        /**发送信号使UI更新托盘信息*/
+        if(networkChange) {
+            log::info("%s","网卡IP改变，更新托盘ToolTip");
+            emit(ipChange());
         }
     }
 
@@ -234,78 +240,82 @@ QString msgServer::getIPv4(qint32 ip){
     return result;
 }
 
+// 拿到当前网卡的ip等信息，提供给托盘tooltip
 void  msgServer::getLanBrocastAddress(){
-    ipList.clear(); brocastList.clear();  networkcardList.clear();
+    AppContext::ipList.clear(); AppContext::brocastList.clear();  AppContext::networkcardList.clear();
     QList<QNetworkInterface> interfaceList = QNetworkInterface::allInterfaces();
     log::info("%s","获取网卡信息：");
-     for (int i = 0; i < interfaceList.count(); i++)
-     {
-         QNetworkInterface interf = interfaceList.at(i);
+    for (int i = 0; i < interfaceList.count(); i++)
+    {
+        QNetworkInterface interf = interfaceList.at(i);
 
-         QNetworkInterface::InterfaceFlags interFlags;
-         interFlags = interf.flags();
-         if((interFlags&QNetworkInterface::IsUp) &&
-         (interFlags&QNetworkInterface::IsRunning) &&
-         (interFlags&QNetworkInterface::CanBroadcast) &&
-         (interFlags&QNetworkInterface::CanMulticast) &&
-         !(interFlags&QNetworkInterface::IsLoopBack)){ }else continue;
+        QNetworkInterface::InterfaceFlags interFlags;
+        interFlags = interf.flags();
+        if((interFlags&QNetworkInterface::IsUp) &&
+                (interFlags&QNetworkInterface::IsRunning) &&
+                (interFlags&QNetworkInterface::CanBroadcast) &&
+                (interFlags&QNetworkInterface::CanMulticast) &&
+                !(interFlags&QNetworkInterface::IsLoopBack)){ }else continue;
 
-         QString networkCardName=interf.humanReadableName();
-         if(networkCardName.contains("Loopback")) continue;
+        QString networkCardName=interf.humanReadableName();
+        if(networkCardName.contains("Loopback")) continue;
 
         // qDebug()<<"网卡名称："<<networkCardName; //接口名称（网卡）
-         log::info("%s", (tr("网卡名称：")+networkCardName).toStdString().c_str());
+        log::info("%s", (tr("网卡名称：")+networkCardName).toStdString().c_str());
 
 
-         // 读取一个IP地址列表
+        // 读取一个IP地址列表
         QList<QNetworkAddressEntry> entryList = interf.addressEntries();
-         for(int j = 0; j < entryList.count(); j++)
-         {
+        for(int j = 0; j < entryList.count(); j++)
+        {
 
-             QNetworkAddressEntry entry = entryList.at(j);
+            QNetworkAddressEntry entry = entryList.at(j);
 
-             QString ip = entry.ip().toString();                             //IP地址
-             QString mask = entry.netmask().toString();            //子网掩码
-             QString bcast = entry.broadcast().toString();          //广播地址
-             if(bcast.compare("")==0) continue;
+            QString ip = entry.ip().toString();                             //IP地址
+            QString mask = entry.netmask().toString();            //子网掩码
+            QString bcast = entry.broadcast().toString();          //广播地址
+            if(bcast.compare("")==0) continue;
 
-             ipList.append(ip); brocastList.append(bcast); networkcardList.append(networkCardName);
+            AppContext::ipList.append(ip);
+            AppContext::brocastList.append(bcast);
+            AppContext::networkcardList.append(networkCardName);
 
-             log::info("%s", (tr("ip：")+ip+tr("  掩码：")+mask+"  广播地址："+bcast).toStdString().c_str());
+            log::info("%s", (tr("ip：")+ip+tr("  掩码：")+mask+"  广播地址："+bcast).toStdString().c_str());
 
-         }
+        }
 
-     }
+    }
 }
 
-void  msgServer::getLanBrocastAddress_1(){
-    ipList_Curr.clear();
+// 由定时器触发，拿到当前的ip列表
+void  msgServer::getCurrIPList(){
+    AppContext::ipListCurr.clear();
     QList<QNetworkInterface> interfaceList = QNetworkInterface::allInterfaces();
-     for (int i = 0; i < interfaceList.count(); i++)
-     {
-         QNetworkInterface interf = interfaceList.at(i);
-         QNetworkInterface::InterfaceFlags interFlags;
-         interFlags = interf.flags();
-         if((interFlags&QNetworkInterface::IsUp) &&
-         (interFlags&QNetworkInterface::IsRunning) &&
-         (interFlags&QNetworkInterface::CanBroadcast) &&
-         (interFlags&QNetworkInterface::CanMulticast) &&
-         !(interFlags&QNetworkInterface::IsLoopBack)){ }else continue;
+    for (int i = 0; i < interfaceList.count(); i++)
+    {
+        QNetworkInterface interf = interfaceList.at(i);
+        QNetworkInterface::InterfaceFlags interFlags;
+        interFlags = interf.flags();
+        if((interFlags&QNetworkInterface::IsUp) &&
+                (interFlags&QNetworkInterface::IsRunning) &&
+                (interFlags&QNetworkInterface::CanBroadcast) &&
+                (interFlags&QNetworkInterface::CanMulticast) &&
+                !(interFlags&QNetworkInterface::IsLoopBack)){ }else continue;
 
-         QString networkCardName=interf.humanReadableName();
-         if(networkCardName.contains("Loopback")) continue;
+        QString networkCardName=interf.humanReadableName();
+        if(networkCardName.contains("Loopback")) continue;
 
         QList<QNetworkAddressEntry> entryList = interf.addressEntries();
-         for(int j = 0; j < entryList.count(); j++)
-         {
-             QNetworkAddressEntry entry = entryList.at(j);
-             QString ip = entry.ip().toString();                             //IP地址
-             QString bcast = entry.broadcast().toString();          //广播地址
-             if(bcast.compare("")==0) continue;
-                ipList_Curr.append(ip);
-         }
+        for(int j = 0; j < entryList.count(); j++)
+        {
+            QNetworkAddressEntry entry = entryList.at(j);
+            QString ip = entry.ip().toString();                             //IP地址
+            QString bcast = entry.broadcast().toString();          //广播地址
+            if(bcast.compare("")==0) continue;
+            AppContext::ipListCurr.append(ip);
+        }
 
-     }
+    }
 
 
 }

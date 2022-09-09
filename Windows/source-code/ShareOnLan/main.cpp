@@ -17,9 +17,10 @@ int main(int argc, char *argv[])
     w.setLocalServer(d.m_localServer);
     if(!w.listening()) {
         log::info("启动时监听端口失败，程序退出");
-        system((conf->configDirectoryPath+QString("/")+conf->logFileName).toStdString().c_str());
+        system((setting->configDirectoryPath+QString("/")+setting->logFileName).toStdString().c_str());
         return -2;
     }
 
-    return a.exec();
+    int code = a.exec();
+    return code;
 }

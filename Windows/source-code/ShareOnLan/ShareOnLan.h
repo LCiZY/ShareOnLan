@@ -66,7 +66,7 @@ public slots:
     void secretChange(QString);
     void ipChange();
     void otherPCReadyReceiveFile();
-    void slot_checkBox_ifhidewhenlaunch(bool);
+    void slot_checkBox_isHideAtStartup(bool);
     void slot_checkBox_autoLaunch(bool);
     void showMain();
     void showMini();

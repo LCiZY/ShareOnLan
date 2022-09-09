@@ -4,7 +4,7 @@
 #include<QQueue>
 #include<QFile>
 #include<QFileInfo>
-#include<config.h>
+#include<user_setting.h>
 #include<QStandardPaths>
 #include<QTime>
 #include<QDate>
@@ -12,10 +12,6 @@
 #include<QDebug>
 #include <random>
 #include <sstream>
-
-namespace uuid {
-    std::string generate_uuid_v4();
-}
 
 struct SelfFileInfo {
     qint64 fileSize;
@@ -26,59 +22,75 @@ struct SelfFileInfo {
 };
 typedef SelfFileInfo FileInfo;
 
-struct SelfConnectionInfo {
-    quint8 type;
-    QString ip;
-    quint16 msgPort;
-    quint16 fileServerPort;
-};
-typedef SelfConnectionInfo ConnectionInfo;
+extern UserSetting *setting;
 
-extern ConnectionInfo* connectionInfo;
-extern QQueue<FileInfo*> receiveFilesQueue;
-extern QQueue<FileInfo*> sendFilesQueue;
-extern QString FileInfoMsgPreffix;
-extern QString FileInfoMsgKey_FileName;
-extern QString FileInfoMsgKey_FileSize;
-extern QString FileInfoMsgKey_UniqueID;
-
-
-extern QStringList ipList;
-extern QStringList brocastList;
-extern QStringList networkcardList;
-extern QStringList ipList_Curr;
-extern QString secret;
-extern config *conf;
-extern const int TRANSFERTIMEOUT;
-extern const int FILESENDBUFFERSIZE;
-extern const int FILEBUFFERSIZE;
-extern const int PORT_BOTTOM;
-extern const int PORT_TOP;
-
-
-extern QString FILE_INFO_MSG_HEAD;
-
-
-
-class utils {
+class AppContext {
 public:
-    static FileInfo* parseFileInfoMsg(QString fileInfoMsg);
-    static QString getFileInfoMsg(QString filePath);
-    static QFileInfoList GetFileList(QString path);
-    static FileInfo* buildFileInfo(QString filePath);
-    static QString formatIPSpace(QString ip);
+    // 接收文件的最长无输入等待时间，ms
+    static const int TRANSFERTIMEOUT;
+    // 发送文件缓冲区大小，字节
+    static const int FILESENDBUFFERSIZE;
+    // 接收文件缓冲区大小，字节
+    static const int FILEBUFFERSIZE;
+    // 消息服务器端口号下界
+    static const int PORT_BOTTOM;
+    // 消息服务器端口号上界
+    static const int PORT_TOP;
+
+    /*-----收发文件元信息-----*/
+    // 文件信息的header
+    static const QString FileInfoMsgPreffix;
+    // 文件信息中文件名的key
+    static const QString FileInfoMsgKey_FileName;
+    // 文件信息中文件Size的key
+    static const QString FileInfoMsgKey_FileSize;
+    // 文件信息中文件唯一ID的key
+    static const QString FileInfoMsgKey_UniqueID;
+
+    /*-----网卡信息-----*/
+    // 网卡ip列表
+    static QStringList ipList;
+    // 检测过程中的网卡ip列表
+    static QStringList ipListCurr;
+    // 广播地址列表
+    static QStringList brocastList;
+    // 网卡名称列表
+    static QStringList networkcardList;
+
+    /*-----收发文件队列-----*/
+    // 接收文件队列
+    static QQueue<FileInfo*> receiveFilesQueue;
+    // 发送文件队列
+    static QQueue<FileInfo*> sendFilesQueue;
+
+private:
+    AppContext();
 };
 
+namespace utils {
+    FileInfo* parseFileInfoMsg(QString fileInfoMsg);
+    QString getFileInfoMsg(QString filePath);
+    QFileInfoList GetFileList(QString path);
+    FileInfo* buildFileInfo(QString filePath);
+    QString formatIPSpace(QString ip);
+}
 
+// 想将log作为namespace，但是好像和sdk里的某个东西重名了。。。 error: redeclared as different kind of symbol
 class log {
 public:
-     // 只能传递const char*
-     static void info(const char *fmt, ...);
-     static void warn(const char *fmt, ...);
-     static void error(const char *fmt, ...);
+    // 只能传递const char*
+    static void info(const char *fmt, ...);
+    static void warn(const char *fmt, ...);
+    static void error(const char *fmt, ...);
 private:
 
-     static void logfunc(QString level, QString content);
+    static void logfunc(QString level, QString content);
 };
+
+
+namespace uuid {
+    std::string generate_uuid_v4();
+}
+
 
 #endif // GLOBALDATA_H

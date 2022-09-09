@@ -7,7 +7,7 @@
 #include<QTimer>
 #include<QDesktopWidget>
 #include<globaldata.h>
-#include<config.h>
+#include<user_setting.h>
 #include<QRegExp>
 #include<QMessageBox>
 #include<QKeyEvent>
@@ -45,7 +45,7 @@ class Connect2UI : public QWidget
     Q_OBJECT
 
 public:
-    explicit Connect2UI(config *c, QWidget *parent = 0);
+    explicit Connect2UI(UserSetting *c, QWidget *parent = 0);
     ~Connect2UI();
 
 signals:

@@ -34,10 +34,10 @@ void DraggableWidget::mousePressEvent(QMouseEvent *event){
         isWithinBottomBorder = event->globalY() < this->frameGeometry().topLeft().y() + bottomBorder;
 
     if( event->globalX() > this->frameGeometry().topLeft().x() && isWithinRightBorder &&
-        event->globalY() > this->frameGeometry().topLeft().y() && isWithinBottomBorder ){
-         mousePressPoint = event->globalPos();
-         windowInitialPoint= this->frameGeometry().topLeft();
-         isDragging = true;
+            event->globalY() > this->frameGeometry().topLeft().y() && isWithinBottomBorder ){
+        mousePressPoint = event->globalPos();
+        windowInitialPoint= this->frameGeometry().topLeft();
+        isDragging = true;
     }
 
 }
@@ -50,7 +50,7 @@ void DraggableWidget::mouseReleaseEvent(QMouseEvent *){
 // -------------------------------Connect2UI  连接到其他PC对话框-----------------------------------
 
 
-Connect2UI::Connect2UI(config* c, QWidget *parent) :
+Connect2UI::Connect2UI(UserSetting* st, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Connect2UI)
 {
@@ -59,27 +59,27 @@ Connect2UI::Connect2UI(config* c, QWidget *parent) :
     this->setWindowTitle(QString("连接至其他PC"));
 
     connect(ui->connectButton, &QPushButton::clicked,[=](){
-            ui->connectButton->setText(QString("正在连接..."));
-            ui->connectButton->setEnabled(false);
-            QApplication::setOverrideCursor(Qt::WaitCursor);
-            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+        ui->connectButton->setText(QString("正在连接..."));
+        ui->connectButton->setEnabled(false);
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 
-            QString ip = ui->lineEdit_ip->text().trimmed();
-            QString p  = ui->lineEdit_port->text().trimmed();
-            c->setConfig("otherPCIP", ip);
-            c->setConfig("otherPCPort", p);
-            quint16 port = (quint16)p.toShort();
-            if(PORT_BOTTOM <= port && port <= PORT_TOP && ip.split(".").size() == 4){
-                log::info("%s",QString("发起连接至：ip: %1, port:%2").arg(ip).arg(QString::number(port)).toStdString().c_str());
-                emit confirmConnect(ip, port);
-            }else{
-                QMessageBox::critical(nullptr,QString("连接失败"),QString("IP或端口号不合法"),QMessageBox::Ok);
-            }
+        QString ip = ui->lineEdit_ip->text().trimmed();
+        QString p  = ui->lineEdit_port->text().trimmed();
+        st->set(UserSetting::Item::OTHER_PC_IP, ip);
+        st->set(UserSetting::Item::OTHER_PC_PORT, p);
+        quint16 port = (quint16)p.toShort();
+        if(AppContext::PORT_BOTTOM <= port && port <= AppContext::PORT_TOP && ip.split(".").size() == 4){
+            log::info("%s",QString("发起连接至：ip: %1, port:%2").arg(ip).arg(QString::number(port)).toStdString().c_str());
+            emit confirmConnect(ip, port);
+        }else{
+            QMessageBox::critical(nullptr,QString("连接失败"),QString("IP或端口号不合法"),QMessageBox::Ok);
+        }
 
-            ui->connectButton->setText(QString("连接"));
-            ui->connectButton->setEnabled(true);
-            QApplication::restoreOverrideCursor();
-       });
+        ui->connectButton->setText(QString("连接"));
+        ui->connectButton->setEnabled(true);
+        QApplication::restoreOverrideCursor();
+    });
     ui->connectButton->setFocus();    //设置默认焦点
     ui->connectButton->setShortcut( QKeySequence::InsertParagraphSeparator );  //设置快捷键为键盘的“回车”键
     ui->connectButton->setShortcut(Qt::Key_Enter);  //设置快捷键为enter键
@@ -90,12 +90,12 @@ Connect2UI::Connect2UI(config* c, QWidget *parent) :
         close();
     });
 
-    ui->lineEdit_ip->setText(c->getConfig("otherPCIP"));
+    ui->lineEdit_ip->setText(st->get(UserSetting::Item::OTHER_PC_IP));
     QRegExp regIp("((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])[\.]){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])");
     ui->lineEdit_ip->setValidator(new QRegExpValidator(regIp,this));
 
-    ui->lineEdit_port->setText(c->getConfig("otherPCPort"));
-    QIntValidator* valid_port=new QIntValidator(this); valid_port->setRange(PORT_BOTTOM,PORT_TOP);
+    ui->lineEdit_port->setText(st->get(UserSetting::Item::OTHER_PC_PORT));
+    QIntValidator* valid_port=new QIntValidator(this); valid_port->setRange(AppContext::PORT_BOTTOM,AppContext::PORT_TOP);
     ui->lineEdit_port->setValidator(valid_port);
 
     connect(ui->lineEdit_ip, SIGNAL(returnPressed()), ui->connectButton, SIGNAL(clicked()), Qt::UniqueConnection);
@@ -116,7 +116,7 @@ void Connect2UI::keyPressEvent(QKeyEvent *ev)
 {
     if(ev->key() == Qt::Key_Escape)
     {
-      close();
+        close();
     }
 
     QWidget::keyPressEvent(ev);
@@ -166,19 +166,19 @@ void ProgressUI::changeUILinearly(){
         if(transferCount>=ui->progressBar->maximum()){ui->progressBar->setValue(ui->progressBar->maximum());linearIncreateBarTimer->stop();  }
         else ui->progressBar->setValue(ui->progressBar->value()+dlength);
     }else
-    if(transferCount>=ui->progressBar->maximum()){ui->progressBar->setValue(ui->progressBar->maximum());linearIncreateBarTimer->stop();  }
+        if(transferCount>=ui->progressBar->maximum()){ui->progressBar->setValue(ui->progressBar->maximum());linearIncreateBarTimer->stop();  }
 }
 
 void ProgressUI::addHeightOnBase(int h){
-   QRect r1 = geometry();
-   r1.setHeight(widgetHeight + h);
-   setGeometry(r1);
-   QRect r2 =  ui->label->geometry();
-   r2.setHeight(bgHeight + h);
-   ui->label->setGeometry(r2);
-   QRect r3 = ui->label_tooltip->geometry();
-   r3.setHeight(tooltipHeight + h);
-   ui->label_tooltip->setGeometry(r3);
+    QRect r1 = geometry();
+    r1.setHeight(widgetHeight + h);
+    setGeometry(r1);
+    QRect r2 =  ui->label->geometry();
+    r2.setHeight(bgHeight + h);
+    ui->label->setGeometry(r2);
+    QRect r3 = ui->label_tooltip->geometry();
+    r3.setHeight(tooltipHeight + h);
+    ui->label_tooltip->setGeometry(r3);
 }
 
 void  ProgressUI::setCurrTaskInfo(qint64 fileSize,  QString fileName){
@@ -224,17 +224,17 @@ void  ProgressUI::setCurrTaskInfo(qint64 fileSize,  QString fileName){
 int dy=0;
 void  ProgressUI::showAtBottomRight(){
     QDesktopWidget *deskTop=QApplication::desktop();
-        deskRect=deskTop->availableGeometry();
-        normalPoint.setX(deskRect.width()-rect().width()-1);
-        normalPoint.setY(deskRect.height()-rect().height());
-        move(normalPoint.x(),deskRect.height()-1);
-        this->setWindowFlag(Qt::WindowStaysOnTopHint);
-        this->show();
-        this->raise();
-        this->activateWindow();
+    deskRect=deskTop->availableGeometry();
+    normalPoint.setX(deskRect.width()-rect().width()-1);
+    normalPoint.setY(deskRect.height()-rect().height());
+    move(normalPoint.x(),deskRect.height()-1);
+    this->setWindowFlag(Qt::WindowStaysOnTopHint);
+    this->show();
+    this->raise();
+    this->activateWindow();
 
-        showTimer->start(10);
-        dy=0;
+    showTimer->start(10);
+    dy=0;
 }
 
 // 从右下角滑出

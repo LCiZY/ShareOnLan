@@ -76,7 +76,7 @@ private:
 
     QString encrypt(QString);
     QString getIPv4(qint32 ip);
-    void getLanBrocastAddress_1();
+    void getCurrIPList();
 
 
 

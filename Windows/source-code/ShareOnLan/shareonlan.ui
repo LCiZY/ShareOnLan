@@ -19,7 +19,15 @@
   <property name="windowTitle">
    <string>ShareOnLan</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
+  <widget class="QWidget" name="centralWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>360</width>
+     <height>200</height>
+    </rect>
+   </property>
    <property name="maximumSize">
     <size>
      <width>360</width>
@@ -97,7 +105,7 @@
      <string>启动时隐藏此界面</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox_ifhidewhenlaunch">
+   <widget class="QCheckBox" name="checkBox_isHideAtStartup">
     <property name="geometry">
      <rect>
       <x>190</x>
@@ -307,7 +315,7 @@
    <zorder>label_autolaunch</zorder>
    <zorder>checkBox_ifautostartup</zorder>
    <zorder>label_hideMain</zorder>
-   <zorder>checkBox_ifhidewhenlaunch</zorder>
+   <zorder>checkBox_isHideAtStartup</zorder>
    <zorder>minimalButton</zorder>
    <zorder>closeButton</zorder>
    <zorder>right_top_icon_label</zorder>

@@ -31,9 +31,9 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
 ShareOnLan::~ShareOnLan()
 {
     log::info("主窗体析构调用");
-    conf->deleteLater();
     fileserver->deleteLater();
     server->deleteLater();
+    setting->deleteLater();
     if(connect2ui != nullptr)
         connect2ui->deleteLater();
     delete ui;
@@ -45,7 +45,7 @@ bool ShareOnLan::listening(){
 }
 
 void ShareOnLan::serverInit(){
-    server = new msgServer(this,conf->getConfig("port").toInt());
+    server = new msgServer(this, setting->get(UserSetting::Item::PORT).toInt());
     fileserver = new fileServer;
     connect(server,SIGNAL(clientChange()),this,SLOT(clientChange()));
     connect(server,SIGNAL(ipChange()),this,SLOT(ipChange()));
@@ -61,11 +61,11 @@ void ShareOnLan::serverInit(){
 void ShareOnLan::windowInit(){
 
     ui->right_top_icon_label->setPixmap(QPixmap(":/icon/transfer_3d.png"));
-    ui->lineEdit_port->setText(conf->getConfig("port"));valid_port=new QIntValidator(this); valid_port->setRange(PORT_BOTTOM,PORT_TOP);ui->lineEdit_port->setValidator(valid_port); ui->lineEdit_port->setToolTip(QString("%1 <= 端口号 <= %2").arg(QString::number(PORT_BOTTOM)).arg(QString::number(PORT_TOP)));
-    ui->checkBox_ifhidewhenlaunch->setChecked(conf->getConfig("ifhidewhenlaunch").compare("true")==0);
-    ui->checkBox_ifautostartup->setChecked(conf->getConfig("automaticStartup").compare("true")==0); conf->setAutomaticStartup(ui->checkBox_ifautostartup->isChecked());
-    ui->lineEdit_secret->setText(conf->getConfig("secret")); ui->lineEdit_secret->setToolTip("输入手机APP上的密钥");
-    ui->lineEdit_fileReceiveLocation->setText(conf->getConfig("fileReceiveLocation"));
+    ui->lineEdit_port->setText(setting->get(UserSetting::Item::PORT));valid_port=new QIntValidator(this); valid_port->setRange(AppContext::PORT_BOTTOM,AppContext::PORT_TOP);ui->lineEdit_port->setValidator(valid_port); ui->lineEdit_port->setToolTip(QString("%1 <= 端口号 <= %2").arg(QString::number(AppContext::PORT_BOTTOM)).arg(QString::number(AppContext::PORT_TOP)));
+    ui->checkBox_isHideAtStartup->setChecked(setting->get(UserSetting::Item::IS_HIDE_AT_STARTUP).compare("true")==0);
+    ui->checkBox_ifautostartup->setChecked(setting->get(UserSetting::Item::AUTOMATIC_STARTUP).compare("true")==0); setting->setAutomaticStartup(ui->checkBox_ifautostartup->isChecked());
+    ui->lineEdit_secret->setText(setting->get(UserSetting::Item::SECRET)); ui->lineEdit_secret->setToolTip("输入手机APP上的密钥");
+    ui->lineEdit_fileReceiveLocation->setText(setting->get(UserSetting::Item::FILE_RECEIVE_LOCATION));
     ui->lineEdit_fileReceiveLocation->setToolTip(ui->lineEdit_fileReceiveLocation->text());
     ui->lineEdit_fileReceiveLocation->setEnabled(false);
     ui->pushButton_changeFileReceiveLocation->setToolTip("更改文件保存位置"); ui->pushButton_changeFileReceiveLocation->setIcon(QIcon(":/images/button_edit_location.png")); ui->pushButton_changeFileReceiveLocation->setIconSize(QSize(21,21));
@@ -75,7 +75,7 @@ void ShareOnLan::windowInit(){
 
     connect(ui->lineEdit_secret,SIGNAL(textChanged(QString)),this,SLOT(secretChange(QString)));
     connect(ui->lineEdit_port,SIGNAL(textChanged(QString)),this,SLOT(portChange(QString)));
-    connect(ui->checkBox_ifhidewhenlaunch,SIGNAL(toggled(bool)),this,SLOT(slot_checkBox_ifhidewhenlaunch(bool)));
+    connect(ui->checkBox_isHideAtStartup,SIGNAL(toggled(bool)),this,SLOT(slot_checkBox_isHideAtStartup(bool)));
     connect(ui->checkBox_ifautostartup,SIGNAL(toggled(bool)),this,SLOT(slot_checkBox_autoLaunch(bool)));
     connect(ui->pushButton_changeFileReceiveLocation,SIGNAL(clicked(bool)),this,SLOT(changeFileReceiveLocation()));
     connect(ui->pushButton_openFileLocationFolder,SIGNAL(clicked(bool)),this,SLOT(openFileLocationFolder()));
@@ -92,7 +92,7 @@ void ShareOnLan::varInit(){
 
 void ShareOnLan::setWinFlags(){
     //设置窗口本身是否可见
-    this->setVisible(!ui->checkBox_ifhidewhenlaunch->isChecked());
+    this->setVisible(!ui->checkBox_isHideAtStartup->isChecked());
     //设置托盘图标
     this->mSysTrayIcon->setVisible(true);
 }
@@ -197,7 +197,7 @@ void ShareOnLan::sysTrayMenuInit(){
 void  ShareOnLan::portChange(QString newPort){
     if(newPort.isEmpty()||newPort.isNull()||newPort.compare("")==0||newPort.toInt()<=1024) return;
     if(server->listenOn(newPort.toInt())){
-        conf->setConfig("port",newPort);
+        setting->set(UserSetting::Item::PORT,newPort);
         sysTrayTextChange();
     }else{
         QMessageBox::critical(nullptr,QString("绑定端口失败"),QString("端口%1被占用，请更换端口").arg(newPort),QMessageBox::Ok);
@@ -208,11 +208,11 @@ void  ShareOnLan::portChange(QString newPort){
 void ShareOnLan::secretChange(QString newSecret){
     if(newSecret.isNull()||newSecret.compare("")==0) return;
     newSecret = newSecret.simplified(); newSecret = newSecret.replace(" ","");
-    conf->setConfig("secret",newSecret);
+    setting->set(UserSetting::Item::SECRET,newSecret);
 }
 
-void  ShareOnLan::slot_checkBox_ifhidewhenlaunch(bool checked){
-    conf->setConfig("ifhidewhenlaunch",checked?"true":"false");
+void  ShareOnLan::slot_checkBox_isHideAtStartup(bool checked){
+    setting->set(UserSetting::Item::IS_HIDE_AT_STARTUP,checked?"true":"false");
 }
 
 
@@ -222,7 +222,7 @@ void ShareOnLan::changeFileReceiveLocation(){
     if(location.compare("")==0) return;
     ui->lineEdit_fileReceiveLocation->setText(location);
     ui->lineEdit_fileReceiveLocation->setToolTip(location);
-    conf->setConfig("fileReceiveLocation",location);
+    setting->set(UserSetting::Item::FILE_RECEIVE_LOCATION,location);
 
 }
 
@@ -243,8 +243,8 @@ void ShareOnLan::clientChange(){
             progressUIDestroy();
         }
         fileserver->closeSocket();
-        sendFilesQueue.clear();
-        receiveFilesQueue.clear();
+        AppContext::sendFilesQueue.clear();
+        AppContext::receiveFilesQueue.clear();
     }
 }
 
@@ -286,8 +286,8 @@ void ShareOnLan::otherPCReadyReceiveFile(){
 
 void ShareOnLan::sysTrayTextChange(){
     QString content="";
-    for(int i=0;i<ipList.size();i++) {
-        content.append("\n").append("IP:").append(ipList.at(i)).append(" (").append(networkcardList.at(i)).append(")");
+    for(int i=0;i<AppContext::ipList.size();i++) {
+        content.append("\n").append("IP:").append(AppContext::ipList.at(i)).append(" (").append(AppContext::networkcardList.at(i)).append(")");
     }
     tray_tooltip = tr("「ShareOnLan」正在运行").append("\n连接状态:").append(server->getConnection()).append(content).append("\n端口:").append(QString::number(server->listeningPort));
     //当鼠标移动到托盘上的图标时，会显示此处设置的内容
@@ -315,36 +315,36 @@ void ShareOnLan::on_SendFile(){
     //常用来描述保存在剪切板里信息，或者拖拽原理
     const  QMimeData *mimeData = clipboard->mimeData();
     if(mimeData->hasUrls()){ // 如果剪贴板有文件，询问用户是否发送此文件
-       QList<QUrl> urls =  mimeData->urls();
-       bool exist = true;
-       for(int i = 0; i < urls.size(); i++){
-           QString urlPath = urls.at(i).toLocalFile();
-           QFileInfo file(urlPath);
-           if(!file.exists()) {exist = false; break;}
-           if(file.isFile()){
-               filePaths.append(urlPath);
-           }else{
-              QFileInfoList infoList =  utils::GetFileList(urlPath);
-              for(QFileInfo info: infoList){
-                  filePaths.append(info.absoluteFilePath());
-              }
-           }
-       }
-       if(!filePaths.isEmpty()){
-           QString dlgTitle="发送文件";
-           QString strInfo=QString("检测到剪贴板中的 %1 等共 %2 个文件，是否发送?").arg(filePaths.at(0)).arg(QString::number(filePaths.size()));
-           int result = QMessageBox::question(nullptr, dlgTitle, strInfo, "是", "选择其他文件", "取消");
-           if (result==0){ //是
-               if(!exist){
-                   log::error("%s", "剪贴板中的文件不存在！");
-                   QMessageBox::critical(nullptr, "错误", "文件不存在");
-                   return;
-               }
-           }else if(result==1){//选择文件
-               filePaths.clear();
-           }//取消
-           else return;
-       }
+        QList<QUrl> urls =  mimeData->urls();
+        bool exist = true;
+        for(int i = 0; i < urls.size(); i++){
+            QString urlPath = urls.at(i).toLocalFile();
+            QFileInfo file(urlPath);
+            if(!file.exists()) {exist = false; break;}
+            if(file.isFile()){
+                filePaths.append(urlPath);
+            }else{
+                QFileInfoList infoList =  utils::GetFileList(urlPath);
+                for(QFileInfo info: infoList){
+                    filePaths.append(info.absoluteFilePath());
+                }
+            }
+        }
+        if(!filePaths.isEmpty()){
+            QString dlgTitle="发送文件";
+            QString strInfo=QString("检测到剪贴板中的 %1 等共 %2 个文件，是否发送?").arg(filePaths.at(0)).arg(QString::number(filePaths.size()));
+            int result = QMessageBox::question(nullptr, dlgTitle, strInfo, "是", "选择其他文件", "取消");
+            if (result==0){ //是
+                if(!exist){
+                    log::error("%s", "剪贴板中的文件不存在！");
+                    QMessageBox::critical(nullptr, "错误", "文件不存在");
+                    return;
+                }
+            }else if(result==1){//选择文件
+                filePaths.clear();
+            }//取消
+            else return;
+        }
 
     }
 
@@ -353,7 +353,7 @@ void ShareOnLan::on_SendFile(){
     if(filePaths.isEmpty()) return;
 
     for(QString filePath: filePaths){
-        sendFilesQueue.push_back(utils::buildFileInfo(filePath));
+        AppContext::sendFilesQueue.push_back(utils::buildFileInfo(filePath));
     }
     triggerSendFile();
 }
@@ -370,33 +370,33 @@ void ShareOnLan::dropEvent(QDropEvent *event)
         if(file.isFile()){
             filePaths.append(urlPath);
         }else{
-           QFileInfoList infoList =  utils::GetFileList(urlPath);
-           for(QFileInfo info: infoList){
-               filePaths.append(info.absoluteFilePath());
-           }
+            QFileInfoList infoList =  utils::GetFileList(urlPath);
+            for(QFileInfo info: infoList){
+                filePaths.append(info.absoluteFilePath());
+            }
         }
     }
 
     if(filePaths.isEmpty()) return;
 
     for(QString filePath: filePaths){
-        sendFilesQueue.push_back(utils::buildFileInfo(filePath));
+        AppContext::sendFilesQueue.push_back(utils::buildFileInfo(filePath));
     }
     triggerSendFile();
 }
 
 
 void ShareOnLan::triggerSendFile(){
-    if(sendFilesQueue.isEmpty()) return;
+    if(AppContext::sendFilesQueue.isEmpty()) return;
     this->fileserver->ifSend = true;
-    QString filePath = sendFilesQueue.at(0)->filePath;
+    QString filePath = AppContext::sendFilesQueue.at(0)->filePath;
     log::info("%s",QString("发送文件：").append(filePath).toStdString().c_str());
-    this->server->sendMsg(FILE_INFO_MSG_HEAD +  utils::getFileInfoMsg(filePath));
+    this->server->sendMsg(AppContext::FileInfoMsgPreffix +  utils::getFileInfoMsg(filePath));
 }
 
 void ShareOnLan::on_connectTo(){
     if(connect2ui == nullptr){
-        connect2ui = new Connect2UI(conf);
+        connect2ui = new Connect2UI(setting);
         connect(connect2ui,SIGNAL(confirmConnect(QString,quint16)), this, SLOT(connectToOtherPC(QString, quint16)));
     }
     connect2ui->show();
@@ -418,8 +418,8 @@ void ShareOnLan::clearConnection(){
     server->closeSocket();
     fileserver->closeSocket();
     //清空文件接收队列
-    receiveFilesQueue.clear();
-    sendFilesQueue.clear();
+    AppContext::receiveFilesQueue.clear();
+    AppContext::sendFilesQueue.clear();
 }
 
 //重启server：重新监听端口并resume连接并重新检测网络信息
@@ -436,8 +436,8 @@ void ShareOnLan::on_restartServer(){
 }
 
 void ShareOnLan::slot_checkBox_autoLaunch(bool flag){
-    conf->setConfig("automaticStartup",flag?"true":"false");
-    conf->setAutomaticStartup(flag);
+    setting->set(UserSetting::Item::AUTOMATIC_STARTUP,flag?"true":"false");
+    setting->setAutomaticStartup(flag);
 }
 
 void ShareOnLan::showMain(){
@@ -498,7 +498,7 @@ void ShareOnLan::keyPressEvent(QKeyEvent *ev)
 {
     if(ev->key() == Qt::Key_Escape)
     {
-      close();
+        close();
     }
 
 }

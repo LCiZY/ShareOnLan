@@ -26,20 +26,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    config.cpp \
     fileserver.cpp \
     msgserver.cpp \
     globaldata.cpp \
     shareonlan.cpp \
-    component_ui.cpp
+    component_ui.cpp \
+    user_setting.cpp
 
 HEADERS += \
-    config.h \
     fileserver.h \
     globaldata.h \
     msgserver.h \
     shareonlan.h \
-    component_ui.h
+    component_ui.h \
+    user_setting.h
 
 FORMS += \
     progressui.ui \

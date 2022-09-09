@@ -5,8 +5,8 @@
 fileServer::fileServer()
 {
     ifSend = false;
-    int port = conf->getConfig("fileServerPort").toInt();
-    if(PORT_BOTTOM <= port && port <= PORT_TOP){
+    int port = setting->get(UserSetting::Item::FILE_SERVER_PORT).toInt();
+    if(AppContext::PORT_BOTTOM <= port && port <= AppContext::PORT_TOP){
         fileServerListeningPort = port;
     }
 
@@ -38,21 +38,21 @@ bool fileServer::listenOn(int port){
 }
 
 void fileServer::clearSockets(){
-//    QHashIterator<int, FileSocket*> iter(this->descriptor2socket);
-//    while(iter.hasNext()) {
-//        iter.next();
-//        FileSocket* socket = iter.value();
-//        if(!socket->isTransferDone()){
+    //    QHashIterator<int, FileSocket*> iter(this->descriptor2socket);
+    //    while(iter.hasNext()) {
+    //        iter.next();
+    //        FileSocket* socket = iter.value();
+    //        if(!socket->isTransferDone()){
 
-//            log::info("%s",tr("false"));
-//            log::info("%s",tr(socket->isValid()? "valid" :"invalid"));
-//            log::info("%s",tr(socket->isReadable()? "readable" :"unreadable"));
-//            log::info("%s",tr(socket->isWritable()? "writable" :"unwritable"));
-//            socket->deleteLater();
+    //            log::info("%s",tr("false"));
+    //            log::info("%s",tr(socket->isValid()? "valid" :"invalid"));
+    //            log::info("%s",tr(socket->isReadable()? "readable" :"unreadable"));
+    //            log::info("%s",tr(socket->isWritable()? "writable" :"unwritable"));
+    //            socket->deleteLater();
 
-//            log::info("%s",tr("over"));
-//        }
-//    }
+    //            log::info("%s",tr("over"));
+    //        }
+    //    }
     this->descriptor2socket.clear();
 }
 
@@ -104,7 +104,7 @@ void fileServer::initSocket(FileSocket* socket){
     connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
     connect(socket,&FileSocket::fileTransferDone,[=](){
         descriptor2socket.remove(socket->socketDescriptor());
-       });
+    });
 }
 
 /**
@@ -118,7 +118,7 @@ void fileServer::initSocket(FileSocket* socket){
 
 void fileServer::receiveFile(FileSocket* socket){
     log::info("%s", "接收文件");
-    socket->setFileInfo(receiveFilesQueue.dequeue());
+    socket->setFileInfo(AppContext::receiveFilesQueue.dequeue());
     //设置准备接收文件的大小
     if(socket->getFileInfo() == nullptr) { log::error("fileServer::receiveFile：未知的接收文件信息（1）"); socket->close();return; }
 
@@ -127,13 +127,13 @@ void fileServer::receiveFile(FileSocket* socket){
     connect(socket,SIGNAL(readyRead()),socket,SLOT(receiveFile()));
 
     //先将filesocket删除再退出线程（在线程的事件循环结束前调用filesocket的deletelater
-   // connect(socket,&FileSocket::disconnected,socket,[=](){socket->deleteLater();});
+    // connect(socket,&FileSocket::disconnected,socket,[=](){socket->deleteLater();});
     connect(socket,&FileSocket::destroyed,[=](){
-                                                receiveFileThread->quit();
-                                                receiveFileThread->deleteLater();
-                                                if(receiveFilesQueue.isEmpty())
-                                                    emit fileTransferDone();
-                                               });
+        receiveFileThread->quit();
+        receiveFileThread->deleteLater();
+        if(AppContext::receiveFilesQueue.isEmpty())
+            emit fileTransferDone();
+    });
 
     //接收进度
     connect(socket,SIGNAL(readProgress(qint64)),this,SIGNAL(receiveProgress(qint64)));
@@ -155,7 +155,7 @@ void fileServer::receiveFile(FileSocket* socket){
 void fileServer::sendFile(FileSocket* socket){
     log::info("%s", "fileServer::sendFile 发送文件");
     ifSend = false;
-    socket->setFileInfo(sendFilesQueue.dequeue());
+    socket->setFileInfo(AppContext::sendFilesQueue.dequeue());
     if(socket->getFileInfo() == nullptr) { log::error("fileServer::sendFile：未知的接收文件信息（2）"); socket->close();return; }
 
     QThread* sendFileThread = new QThread();
@@ -167,7 +167,7 @@ void fileServer::sendFile(FileSocket* socket){
     connect(socket,&FileSocket::destroyed,[=](){
         sendFileThread->quit();
         sendFileThread->deleteLater();
-        if(sendFilesQueue.isEmpty())
+        if(AppContext::sendFilesQueue.isEmpty())
             emit fileTransferDone();
         else
             emit sendNextFile();
@@ -230,11 +230,11 @@ void FileSocket::sendFile(){
 
     emit currFileInfo(sendfile.size(), fp);
 
-    char *buf= new char[FILESENDBUFFERSIZE];
+    char *buf= new char[AppContext::FILESENDBUFFERSIZE];
     qint64 length = 1;
     //耗时操作:发送文件
     int count=0;
-    while ((length=sendfile.read(buf,FILESENDBUFFERSIZE))!=-1&&length!=0) {
+    while ((length=sendfile.read(buf,AppContext::FILESENDBUFFERSIZE))!=-1&&length!=0) {
         this->write(buf,length);
         count+=length;
         this->waitForBytesWritten();
@@ -257,7 +257,7 @@ void FileSocket::receiveFile(){
 
     FileInfo* fileInfo = this->getFileInfo();
 
-    QString fileSaveDir = conf->getConfig("fileReceiveLocation") == "" ? QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) : conf->getConfig("fileReceiveLocation");
+    QString fileSaveDir = setting->get(UserSetting::Item::FILE_RECEIVE_LOCATION) == "" ? QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) : setting->get(UserSetting::Item::FILE_RECEIVE_LOCATION);
 
     //读取用户默认保存位置
     QString userChooseFileName = fileSaveDir + tr("/") + (fileInfo->fileName==""?tr("untitle.file"):fileInfo->fileName);
@@ -275,11 +275,11 @@ void FileSocket::receiveFile(){
 
     if(receivefile.open(fileInfo->resolveFileSize==0?QIODevice::WriteOnly:QIODevice::Append)){
 
-        char *buf=new char[FILEBUFFERSIZE];
+        char *buf=new char[AppContext::FILEBUFFERSIZE];
         qint64 length = 0;
 
         //耗时操作，接收文件
-        while ((length=this->read(buf,FILEBUFFERSIZE))!=-1 && length != 0) {
+        while ((length=this->read(buf,AppContext::FILEBUFFERSIZE))!=-1 && length != 0) {
             // qDebug() << "length1: " << length;
             receivefile.write(buf,length);
             fileInfo->resolveFileSize+=length;
@@ -314,7 +314,7 @@ void FileSocket::receiveFile(){
 
 
 void FileSocket::setFileInfo(FileInfo* fileInfo){
-     this->fileInfo = fileInfo;
+    this->fileInfo = fileInfo;
 }
 
 FileInfo* FileSocket::getFileInfo(){
@@ -329,16 +329,16 @@ bool FileSocket::isTransferDone(){
 void FileSocket::timerEvent(QTimerEvent *event)
 {
     if(event->timerId() == this->detectConnectionTimerID) {
-        if(clock() - lastTransferTime > TRANSFERTIMEOUT){
-             if(fileInfo != nullptr)
+        if(clock() - lastTransferTime > AppContext::TRANSFERTIMEOUT){
+            if(fileInfo != nullptr)
                 log::error("%s",tr("***接收文件失败***接收大小:%1, 实际大小: %2, 文件名称:%3").
-                          arg(QString::number(fileInfo->resolveFileSize)).
-                          arg(QString::number(fileInfo->fileSize)).
-                          arg(fileInfo->fileName).
-                          toStdString().c_str());
-             emit fileTransferDone();
-             this->transferDone = true;
-             this->deleteLater();
+                           arg(QString::number(fileInfo->resolveFileSize)).
+                           arg(QString::number(fileInfo->fileSize)).
+                           arg(fileInfo->fileName).
+                           toStdString().c_str());
+            emit fileTransferDone();
+            this->transferDone = true;
+            this->deleteLater();
         }
     }
 }
