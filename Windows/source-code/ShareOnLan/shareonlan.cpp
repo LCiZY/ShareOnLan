@@ -3,12 +3,12 @@
 
 
 ShareOnLan::ShareOnLan(QWidget *parent) :
-    QMainWindow(parent),
+    DraggableWidget(parent, 0, 30),
     ui(new Ui::ShareOnLan)
 {
     ui->setupUi(this);
-    LogWithoutTime("");
-    Log("程序开始运行");
+    log::info("程序开始运行");
+    log::info("%s %s", "我是", "帅b");
 
     this->setWindowTitle(tr("ShareOnLan"));
     this->setWindowIcon(QIcon(":/icon/transfer_64.png"));
@@ -30,14 +30,14 @@ ShareOnLan::ShareOnLan(QWidget *parent) :
 
 ShareOnLan::~ShareOnLan()
 {
-    Log("主窗体析构调用");
+    log::info("主窗体析构调用");
     conf->deleteLater();
     fileserver->deleteLater();
     server->deleteLater();
     if(connect2ui != nullptr)
         connect2ui->deleteLater();
     delete ui;
-    Log("主窗体析构调用完成，程序结束运行");
+    log::info("主窗体析构调用完成，程序结束运行");
 }
 
 bool ShareOnLan::listening(){
@@ -82,13 +82,10 @@ void ShareOnLan::windowInit(){
     connect(ui->minimalButton,SIGNAL(clicked(bool)),this,SLOT(showMini()));
     connect(ui->closeButton,SIGNAL(clicked(bool)),this,SLOT(hideWindow()));
 
-
 }
 
 
 void ShareOnLan::varInit(){
-    //拖动窗口移动标志
-    moveFlag=false;
     progressui = nullptr;
     connect2ui = nullptr;
 }
@@ -257,7 +254,7 @@ void ShareOnLan::ipChange(){
 }
 
 void ShareOnLan::connectToOtherPC(QString ip, quint16 port){
-    Log(QString("连接到其他PC， ip:%1  port:%2").arg(ip).arg(QString::number(port)));
+    log::info("%s",QString("连接到其他PC， ip:%1  port:%2").arg(ip).arg(QString::number(port)).toStdString().c_str());
     QTcpSocket* socket = new QTcpSocket();
     socket->setProxy(QNetworkProxy::NoProxy);
     socket->connectToHost(ip, port);
@@ -265,11 +262,11 @@ void ShareOnLan::connectToOtherPC(QString ip, quint16 port){
     QAbstractSocket::SocketState state = socket->state();
     if(ok &&  state == QAbstractSocket::ConnectedState){
         server->incomingConnection(socket);
-        Log("连接到其他PC成功");
+        log::info("连接到其他PC成功");
         connect2ui->close();
     }else{
         QMessageBox::critical(nullptr,QString("连接失败"),QString("连接至其他PC失败：%1").arg(socket->errorString()), QMessageBox::Ok);
-        Log("连接到其他PC失败");
+        log::error("连接到其他PC失败");
     }
 
 }
@@ -327,7 +324,7 @@ void ShareOnLan::on_SendFile(){
            if(file.isFile()){
                filePaths.append(urlPath);
            }else{
-              QFileInfoList infoList = GetFileList(urlPath);
+              QFileInfoList infoList =  utils::GetFileList(urlPath);
               for(QFileInfo info: infoList){
                   filePaths.append(info.absoluteFilePath());
               }
@@ -339,7 +336,7 @@ void ShareOnLan::on_SendFile(){
            int result = QMessageBox::question(nullptr, dlgTitle, strInfo, "是", "选择其他文件", "取消");
            if (result==0){ //是
                if(!exist){
-                   Log(QString("剪贴板中的文件不存在！"));
+                   log::error("%s", "剪贴板中的文件不存在！");
                    QMessageBox::critical(nullptr, "错误", "文件不存在");
                    return;
                }
@@ -356,7 +353,7 @@ void ShareOnLan::on_SendFile(){
     if(filePaths.isEmpty()) return;
 
     for(QString filePath: filePaths){
-        sendFilesQueue.push_back(buildFileInfo(filePath));
+        sendFilesQueue.push_back(utils::buildFileInfo(filePath));
     }
     triggerSendFile();
 }
@@ -373,7 +370,7 @@ void ShareOnLan::dropEvent(QDropEvent *event)
         if(file.isFile()){
             filePaths.append(urlPath);
         }else{
-           QFileInfoList infoList = GetFileList(urlPath);
+           QFileInfoList infoList =  utils::GetFileList(urlPath);
            for(QFileInfo info: infoList){
                filePaths.append(info.absoluteFilePath());
            }
@@ -383,7 +380,7 @@ void ShareOnLan::dropEvent(QDropEvent *event)
     if(filePaths.isEmpty()) return;
 
     for(QString filePath: filePaths){
-        sendFilesQueue.push_back(buildFileInfo(filePath));
+        sendFilesQueue.push_back(utils::buildFileInfo(filePath));
     }
     triggerSendFile();
 }
@@ -393,8 +390,8 @@ void ShareOnLan::triggerSendFile(){
     if(sendFilesQueue.isEmpty()) return;
     this->fileserver->ifSend = true;
     QString filePath = sendFilesQueue.at(0)->filePath;
-    Log(QString("发送文件：") + filePath);
-    this->server->sendMsg(FILE_INFO_MSG_HEAD + getFileInfoMsg(filePath));
+    log::info("%s",QString("发送文件：").append(filePath).toStdString().c_str());
+    this->server->sendMsg(FILE_INFO_MSG_HEAD +  utils::getFileInfoMsg(filePath));
 }
 
 void ShareOnLan::on_connectTo(){
@@ -465,7 +462,7 @@ void ShareOnLan::on_exitAppAction(){
 
 void  ShareOnLan::showProgressUI(){
     if(this->progressui!=nullptr) { progressui->show(); return;}
-    progressui = new progressUI(nullptr);
+    progressui = new ProgressUI(nullptr);
     connect(progressui,SIGNAL(destroyed(QObject*)),this,SLOT(progressUIDestroy()));
     progressui->showAtBottomRight();
 
@@ -489,33 +486,6 @@ void ShareOnLan::progressUIDestroy(){
     this->progressui=nullptr;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* dragEnterEvent 过滤无用Event */
 void ShareOnLan::dragEnterEvent(QDragEnterEvent *event)
 {
@@ -530,34 +500,7 @@ void ShareOnLan::keyPressEvent(QKeyEvent *ev)
     {
       close();
     }
-    QMainWindow::keyPressEvent(ev);
-}
 
-void ShareOnLan::mouseMoveEvent(QMouseEvent *event)
-{
-    if(moveFlag)
-    {
-        endPoint= event->globalPos() - startPoint + w_startPoint;
-        this->move(endPoint);
-
-    }
-
-}
-
-void ShareOnLan::mousePressEvent(QMouseEvent *event){
-
-    if(event->globalX()>this->frameGeometry().topLeft().x() && event->globalX()<this->frameGeometry().topRight().x() && event->globalY()>this->frameGeometry().topLeft().y() && event->globalY()<this->frameGeometry().topLeft().y()+30)
-    {
-        startPoint = event->globalPos();
-        w_startPoint= this->frameGeometry().topLeft();
-        moveFlag=true;
-    }
-
-}
-
-void ShareOnLan::mouseReleaseEvent(QMouseEvent *)
-{
-    moveFlag=false;
 }
 
 //改写了关闭事件，先关闭服务器监听循环再接受关闭事件
@@ -586,7 +529,7 @@ void ShareOnLan::newLocalSocketConnection(){
 
 
 
-
+/* SOLSingleInstanceDetecter 单进程检测类 */
 
 bool SOLSingleInstanceDetecter::detectSingleInstance(){
 

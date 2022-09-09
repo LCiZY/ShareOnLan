@@ -30,18 +30,16 @@ SOURCES += \
     fileserver.cpp \
     msgserver.cpp \
     globaldata.cpp \
-    progressui.cpp \
     shareonlan.cpp \
-    connect2ui.cpp
+    component_ui.cpp
 
 HEADERS += \
     config.h \
     fileserver.h \
     globaldata.h \
     msgserver.h \
-    progressui.h \
     shareonlan.h \
-    connect2ui.h
+    component_ui.h
 
 FORMS += \
     progressui.ui \

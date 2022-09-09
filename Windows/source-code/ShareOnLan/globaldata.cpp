@@ -24,9 +24,7 @@ QString FILE_INFO_MSG_HEAD="${FILEINFO}";
 
 
 
-
-
-FileInfo* parseFileInfoMsg(QString fileInfoMsg){
+FileInfo* utils::parseFileInfoMsg(QString fileInfoMsg){
     FileInfo* rt = new FileInfo;
     QStringList splices = fileInfoMsg.split("|");
     for(int i=1;i+1<splices.size();i+=2){
@@ -40,18 +38,18 @@ FileInfo* parseFileInfoMsg(QString fileInfoMsg){
 }
 
 
-QString getFileInfoMsg(QString filePath){
+QString  utils::getFileInfoMsg(QString filePath){
 
-        QFileInfo info(filePath);
-        QString result = QString("|%1|").arg(FileInfoMsgKey_FileName) + info.fileName() +
-                         QString("|%1|").arg(FileInfoMsgKey_FileSize) + QString::number(info.size()) +
-                         QString("|%1|").arg(FileInfoMsgKey_UniqueID) + QString::fromStdString(uuid::generate_uuid_v4());
-        Log(QString("发送文件信息：")+result);
+    QFileInfo info(filePath);
+    QString result = QString("|%1|").arg(FileInfoMsgKey_FileName) + info.fileName() +
+            QString("|%1|").arg(FileInfoMsgKey_FileSize) + QString::number(info.size()) +
+            QString("|%1|").arg(FileInfoMsgKey_UniqueID) + QString::fromStdString(uuid::generate_uuid_v4());
+    log::info("%s", QString("发送文件信息：%1").arg(result).toStdString().c_str());
     return result;
 
 }
 
-FileInfo* buildFileInfo(QString filePath){
+FileInfo*  utils::buildFileInfo(QString filePath){
     FileInfo* rt = new FileInfo;
     QFileInfo info(filePath);
     rt->filePath = filePath;
@@ -62,7 +60,7 @@ FileInfo* buildFileInfo(QString filePath){
     return rt;
 }
 
-QFileInfoList GetFileList(QString path)
+QFileInfoList  utils::GetFileList(QString path)
 {
     QDir dir(path);
     QFileInfoList file_list = dir.entryInfoList(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
@@ -70,15 +68,15 @@ QFileInfoList GetFileList(QString path)
 
     for(int i = 0; i != folder_list.size(); i++)
     {
-         QString name = folder_list.at(i).absoluteFilePath();
-         QFileInfoList child_file_list = GetFileList(name);
-         file_list.append(child_file_list);
+        QString name = folder_list.at(i).absoluteFilePath();
+        QFileInfoList child_file_list =  utils::GetFileList(name);
+        file_list.append(child_file_list);
     }
 
     return file_list;
 }
 
-QString formatIPSpace(QString ip){
+QString utils::formatIPSpace(QString ip){
     QString spaces = "";
     for(int i=0;i<15-ip.size();i++){
         spaces.append("  ");
@@ -87,61 +85,80 @@ QString formatIPSpace(QString ip){
 }
 
 
-void Log(QString content){
-    qDebug()<<content;
-    QFile logFile(conf->configDirectoryPath+QString("/")+conf->logFileName);
-    if(logFile.open(QIODevice::Append)){
-        QTextStream out(&logFile); out.setCodec("UTF-8");
-        out <<QDate::currentDate().toString(Qt::ISODate).toUtf8()<<" "<<QTime::currentTime().toString("hh:mm:ss")<<"\t"<<content.toUtf8()<< "\n" ;
-        logFile.close();
-    }
+QMutex logMutex;
+void log::info(const char *fmt, ...){
+    va_list list;
+    va_start(list, fmt);
+    QString str = QString().vsprintf(fmt, list);
+    va_end(list);
+    log::logfunc("info", str);
 }
 
-void LogWithoutTime(QString content){
-    qDebug()<<content;
+void log::warn(const char *fmt, ...){
+    va_list list;
+    va_start(list, fmt);
+    QString str = QString().vsprintf(fmt, list);
+    va_end(list);
+    log::logfunc("warn", str);
+}
+
+void log::error(const char *fmt, ...){
+    va_list list;
+    va_start(list, fmt);
+    QString str = QString().vsprintf(fmt, list);
+    va_end(list);
+    log::logfunc("error", str);
+}
+
+void log::logfunc(QString level, QString content){
+    QString nowDate = QString(QDate::currentDate().toString(Qt::ISODate).toUtf8());
+    QString nowTime = QTime::currentTime().toString("hh:mm:ss");
     QFile logFile(conf->configDirectoryPath+QString("/")+conf->logFileName);
+    logMutex.lock();
+    QString logStr = QString("%1 %2 %3\t%4").arg(level).arg(nowDate).arg(nowTime).arg(content);
+    qDebug(logStr.toStdString().c_str());
     if(logFile.open(QIODevice::Append)){
         QTextStream out(&logFile); out.setCodec("UTF-8");
-        out << content.toUtf8() << "\n" ;
+        out << logStr << "\n" ;
         logFile.close();
     }
-
+    logMutex.unlock();
 }
 
 
 
 
 namespace uuid {
-    static std::random_device              rd;
-    static std::mt19937                    gen(rd());
-    static std::uniform_int_distribution<> dis(0, 15);
-    static std::uniform_int_distribution<> dis2(8, 11);
+static std::random_device              rd;
+static std::mt19937                    gen(rd());
+static std::uniform_int_distribution<> dis(0, 15);
+static std::uniform_int_distribution<> dis2(8, 11);
 
-    std::string generate_uuid_v4() {
-        std::stringstream ss;
-        int i;
-        ss << std::hex;
-        for (i = 0; i < 8; i++) {
-            ss << dis(gen);
-        }
-        ss << "-";
-        for (i = 0; i < 4; i++) {
-            ss << dis(gen);
-        }
-        ss << "-4";
-        for (i = 0; i < 3; i++) {
-            ss << dis(gen);
-        }
-        ss << "-";
-        ss << dis2(gen);
-        for (i = 0; i < 3; i++) {
-            ss << dis(gen);
-        }
-        ss << "-";
-        for (i = 0; i < 12; i++) {
-            ss << dis(gen);
-        };
-        return ss.str();
+std::string generate_uuid_v4() {
+    std::stringstream ss;
+    int i;
+    ss << std::hex;
+    for (i = 0; i < 8; i++) {
+        ss << dis(gen);
     }
+    ss << "-";
+    for (i = 0; i < 4; i++) {
+        ss << dis(gen);
+    }
+    ss << "-4";
+    for (i = 0; i < 3; i++) {
+        ss << dis(gen);
+    }
+    ss << "-";
+    ss << dis2(gen);
+    for (i = 0; i < 3; i++) {
+        ss << dis(gen);
+    }
+    ss << "-";
+    for (i = 0; i < 12; i++) {
+        ss << dis(gen);
+    };
+    return ss.str();
+}
 }
 

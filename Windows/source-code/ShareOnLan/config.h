@@ -28,7 +28,7 @@ public:
 
     void configInit();
 
-    void enAbleDefaultConfig();
+    void enableDefaultConfig();
 
     bool writeToConfigFile(QString configurationItem, QString configuration);
     bool readConfigFromConfigFile();

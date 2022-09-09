@@ -41,7 +41,6 @@ extern QString FileInfoMsgPreffix;
 extern QString FileInfoMsgKey_FileName;
 extern QString FileInfoMsgKey_FileSize;
 extern QString FileInfoMsgKey_UniqueID;
-extern QMutex sendFileListMutex;
 
 
 extern QStringList ipList;
@@ -59,13 +58,27 @@ extern const int PORT_TOP;
 
 extern QString FILE_INFO_MSG_HEAD;
 
-FileInfo* parseFileInfoMsg(QString fileInfoMsg);
-QString getFileInfoMsg(QString filePath);
-QFileInfoList GetFileList(QString path);
-FileInfo* buildFileInfo(QString filePath);
-QString formatIPSpace(QString ip);
 
-void Log(QString content);
-void LogWithoutTime(QString content);
+
+class utils {
+public:
+    static FileInfo* parseFileInfoMsg(QString fileInfoMsg);
+    static QString getFileInfoMsg(QString filePath);
+    static QFileInfoList GetFileList(QString path);
+    static FileInfo* buildFileInfo(QString filePath);
+    static QString formatIPSpace(QString ip);
+};
+
+
+class log {
+public:
+     // 只能传递const char*
+     static void info(const char *fmt, ...);
+     static void warn(const char *fmt, ...);
+     static void error(const char *fmt, ...);
+private:
+
+     static void logfunc(QString level, QString content);
+};
 
 #endif // GLOBALDATA_H

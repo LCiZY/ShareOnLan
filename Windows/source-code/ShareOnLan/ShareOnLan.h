@@ -1,7 +1,6 @@
 #ifndef SHAREONLAN_H
 #define SHAREONLAN_H
 
-#include <QMainWindow>
 #include<QMenu>
 #include<QAction>
 #include<QSystemTrayIcon>
@@ -20,12 +19,6 @@
 #include<QRegion>
 #include<QMimeData>
 #include<QNetworkProxy>
-
-#include<config.h>
-#include<msgserver.h>
-#include<fileserver.h>
-#include<progressui.h>
-#include<connect2ui.h>
 #include<QLocalSocket>
 #include<QLocalServer>
 #include<QTextStream>
@@ -33,11 +26,17 @@
 #include<QPixmap>
 
 
+#include<msgserver.h>
+#include<fileserver.h>
+#include<component_ui.h>
+
+
+
 namespace Ui {
 class ShareOnLan;
 }
 
-class ShareOnLan : public QMainWindow
+class ShareOnLan : public DraggableWidget
 {
     Q_OBJECT
 
@@ -46,9 +45,6 @@ public:
     ~ShareOnLan();
 
 protected:
-    void mouseMoveEvent(QMouseEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
     void closeEvent(QCloseEvent* event);
     virtual void keyPressEvent(QKeyEvent *ev);
     void dropEvent(QDropEvent *event);
@@ -99,15 +95,12 @@ private:
     QAction *mExitAppAction;
     QIntValidator *valid_port;
     QLocalServer* m_localServer;
-    progressUI* progressui;
+    ProgressUI* progressui;
     Connect2UI* connect2ui;
 
 
     msgServer* server;
     fileServer* fileserver;
-
-    QPoint startPoint,endPoint,w_startPoint;  //移动主窗口所用点,分别为鼠标点击起始点。鼠标移动后的点。窗口初始位置
-    bool moveFlag;
 public:
     bool listening();
     void serverInit();
@@ -118,7 +111,6 @@ public:
     void setWinFlags();
     void clearConnection();
     void sysTrayTextChange();
-
 
     void setLocalServer( QLocalServer* m_localServer);
 

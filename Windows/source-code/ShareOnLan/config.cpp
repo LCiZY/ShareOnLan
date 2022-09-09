@@ -27,12 +27,12 @@ config::config(QObject *parent):
     if(!confFile.exists()){
         //配置文件不存在，使用默认配置
         configInit();
-        enAbleDefaultConfig();
+        enableDefaultConfig();
     }
     else {
          //配置文件存在
          //如果读取配置出错，那么使用默认配置，否则使用配置文件的配置
-         if(!readConfigFromConfigFile()) enAbleDefaultConfig();
+         if(!readConfigFromConfigFile()) enableDefaultConfig();
     }
 
     //判断日志文件是否存在
@@ -52,7 +52,6 @@ config::config(QObject *parent):
 }
 
 config::~config(){
-
 
 }
 
@@ -80,7 +79,6 @@ void config::configInit(){
 QString config::getConfig(QString configName){
 
     return configurations[configName];
-
 }
 
 
@@ -115,7 +113,7 @@ bool config::readConfigFromConfigFile(){
 
             if(splits.size()==2){ //如果配置正确，那么splits的大小应该为2,使用配置文件里的配置
                 configurations[splits.at(0)] = splits.at(1);
-                qDebug()<<splits.at(0)<<splits.at(1);
+                qDebug("配置 %s: %s", splits.at(0).toStdString().c_str(), splits.at(1).toStdString().c_str());
             }else if(splits.size()>0){//配置错误，使用默认配置
                 configurations[splits.at(0)] = defaultConfigurations[splits.at(0)];
             }
@@ -178,7 +176,7 @@ bool config::isPortValid(){
  *@brief 恢复默认设置
  *
  */
-void config::enAbleDefaultConfig(){
+void config::enableDefaultConfig(){
 
    QList<QString> keys =  defaultConfigurations.keys();
    for(int i=0;i<keys.length();i++)

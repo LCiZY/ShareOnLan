@@ -20,7 +20,7 @@ msgServer::~msgServer(){
 
 void msgServer::incomingConnection(int descriptor){
 
-    if(this->socket!=nullptr){ Log(tr("已存在其他TCP连接！拒绝连接"));  return; }
+    if(this->socket!=nullptr){ log::warn("%s","已存在其他TCP连接！拒绝连接");  return; }
     pauseAccepting();
     QTcpSocket* socket = new QTcpSocket(this);
     socket->setSocketDescriptor(descriptor);
@@ -33,19 +33,20 @@ void msgServer::incomingConnection(QTcpSocket* socket){
 
     this->socket = socket;
     socket->setSocketOption(QAbstractSocket::KeepAliveOption,1); //设置keepalive连接
-    if(!this->socket->waitForConnected()) {Log(tr("error:%1").arg(this->socket->errorString()));}
+    if(!this->socket->waitForConnected()) {log::info("%s",tr("error:%1").arg(this->socket->errorString()).toStdString().c_str());}
     connect(socket,SIGNAL(readyRead()),this,SLOT(readMsg()));
     connect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
-    Log(tr("接收到控制连接：")+QString::number(socket->socketDescriptor())+tr("  ip:")+getIPv4( socket->peerAddress().toIPv4Address())+tr("  port:")+QString::number(socket->peerPort()));
+    log::info("%s", (tr("接收到控制连接, socketDescriptor: ")+QString::number(socket->socketDescriptor())+tr("  ip:")+getIPv4( socket->peerAddress().toIPv4Address())+tr("  port:")+QString::number(socket->peerPort())).toStdString().c_str());
     //发送client改变消息
     emit(clientChange());
+
 }
 
 
 void msgServer::socketDisconnect(){
 
     if(this->socket!=nullptr){
-        Log(tr("控制连接断开，socket descriptor：")+QString::number(this->socket->socketDescriptor()));
+        log::info("%s",(tr("控制连接断开，socket descriptor：")+QString::number(this->socket->socketDescriptor())).toStdString().c_str());
         disconnect(socket,SIGNAL(readyRead()),this,SLOT(readMsg()));
         disconnect(socket,SIGNAL(disconnected()),this,SLOT(socketDisconnect()));
         this->socket->deleteLater();
@@ -72,8 +73,8 @@ void msgServer::readMsg(){
 
 
         if(lastMsg.indexOf(FILE_INFO_MSG_HEAD)==0){//收到文件信息
-           Log(tr("接收到移动端文件信息：")+lastMsg);
-           FileInfo* rt = parseFileInfoMsg(lastMsg);
+           log::info("%s", (tr("接收到移动端文件信息：")+lastMsg).toStdString().c_str());
+           FileInfo* rt = utils::parseFileInfoMsg(lastMsg);
            receiveFilesQueue.enqueue(rt);
            send(FILEINFORESPONSE);
         }else if(lastMsg.compare(FILEINFORESPONSE)==0){//对方已经收到文件信息了
@@ -81,7 +82,7 @@ void msgServer::readMsg(){
         }else if(lastMsg.compare(RESPONSE)==0){//心跳包
            if(this->msgHeartStack.size()) this->msgHeartStack.pop();
         }else{//文本信息，写入剪贴板
-            Log(tr("接收到移动端文本消息：")+lastMsg);
+            log::info("%s",(tr("接收到移动端文本消息：")+lastMsg).toStdString().c_str());
             QClipboard *board = QApplication::clipboard();
             board->setText(lastMsg);msgList.append(lastMsg);
             //自动回复: R\n
@@ -131,10 +132,10 @@ bool msgServer::listenOn(int port){
     close();
     bool ok;
     if((ok = listen(QHostAddress::Any,port))){
-        Log(QString("消息服务器：监听成功，端口：%1").arg(QString::number(port)));
+        log::info("%s",QString("消息服务器：监听成功，端口：%1").arg(QString::number(port)).toStdString().c_str());
         this->listeningPort = port;
     }else{
-        Log(QString("消息服务器：监听失败，端口：%1").arg(QString::number(port)));
+        log::error("%s",QString("消息服务器：监听失败，端口：%1").arg(QString::number(port)).toStdString().c_str());
     }
     return ok;
 }
@@ -160,10 +161,10 @@ void msgServer::timerEvent(QTimerEvent *e){
         //如果已经连接，则heartbeat：每 2 秒自动回复: R\n
         if(this->socket!=nullptr){
           //  qDebug("State:%d",this->socket->state()); //3是正常的状态：connected
-            if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0; socketDisconnect(); } Log("检测到连接异常(wrong state)，自动断开"); }
+            if(this->socket->state()!=3) {errorTimes++; if(errorTimes==2){this->socket->close();errorTimes=0; socketDisconnect(); } log::error("检测到连接异常(wrong state)，自动断开"); }
             send(RESPONSE);
             this->socket->waitForBytesWritten();
-            msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear();socketDisconnect(); Log("检测到连接异常(timeout)，自动断开"); }
+            msgHeartStack.push(0); if(msgHeartStack.size()>2){this->socket->close();errorTimes=0;msgHeartStack.clear();socketDisconnect(); log::error("检测到连接异常(timeout)，自动断开"); }
         }else if(ipList.size()!=0){
             //如果还没连接：发送ip、端口号、连接密钥的信息
             for(int i=0;i<ipList.size();i++){
@@ -182,7 +183,7 @@ void msgServer::timerEvent(QTimerEvent *e){
     /**检查网卡信息是否变化*/
     if(checkIPClientTimerID == e->timerId()){
         getLanBrocastAddress_1();
-        if(ipList_Curr.size()!=ipList.size()){/**发送信号使UI更新托盘信息*/ emit(ipChange()); Log(tr("网卡数量改变，更新托盘ToolTip")); }
+        if(ipList_Curr.size()!=ipList.size()){/**发送信号使UI更新托盘信息*/ emit(ipChange()); log::info("%s","网卡数量改变，更新托盘ToolTip"); }
         else {
             bool flag = true;
             for(int i=0;i<ipList_Curr.size();i++){
@@ -193,7 +194,7 @@ void msgServer::timerEvent(QTimerEvent *e){
                 flag = flag & flag_1;
             }
             /**发送信号使UI更新托盘信息*/
-            if(!flag) {emit(ipChange()); Log(tr("网卡IP改变，更新托盘ToolTip"));}
+            if(!flag) {emit(ipChange()); log::info("%s","网卡IP改变，更新托盘ToolTip");}
         }
     }
 
@@ -236,7 +237,7 @@ QString msgServer::getIPv4(qint32 ip){
 void  msgServer::getLanBrocastAddress(){
     ipList.clear(); brocastList.clear();  networkcardList.clear();
     QList<QNetworkInterface> interfaceList = QNetworkInterface::allInterfaces();
-    Log(tr("获取网卡信息："));
+    log::info("%s","获取网卡信息：");
      for (int i = 0; i < interfaceList.count(); i++)
      {
          QNetworkInterface interf = interfaceList.at(i);
@@ -253,7 +254,7 @@ void  msgServer::getLanBrocastAddress(){
          if(networkCardName.contains("Loopback")) continue;
 
         // qDebug()<<"网卡名称："<<networkCardName; //接口名称（网卡）
-         Log(tr("网卡名称：")+networkCardName);
+         log::info("%s", (tr("网卡名称：")+networkCardName).toStdString().c_str());
 
 
          // 读取一个IP地址列表
@@ -270,7 +271,7 @@ void  msgServer::getLanBrocastAddress(){
 
              ipList.append(ip); brocastList.append(bcast); networkcardList.append(networkCardName);
 
-             Log(tr("ip：")+ip+tr("  掩码：")+mask+"  广播地址："+bcast);
+             log::info("%s", (tr("ip：")+ip+tr("  掩码：")+mask+"  广播地址："+bcast).toStdString().c_str());
 
          }
 
