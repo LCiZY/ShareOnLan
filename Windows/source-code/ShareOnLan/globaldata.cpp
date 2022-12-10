@@ -91,7 +91,6 @@ namespace utils {
 }
 
 /* 日志 */
-QMutex logMutex;
 void log::info(const char *fmt, ...){
     va_list list;
     va_start(list, fmt);
@@ -115,7 +114,7 @@ void log::error(const char *fmt, ...){
     va_end(list);
     log::logfunc("error", str);
 }
-
+QMutex logMutex;
 void log::logfunc(QString level, QString content){
     QString nowDate = QString(QDate::currentDate().toString(Qt::ISODate).toUtf8());
     QString nowTime = QTime::currentTime().toString("hh:mm:ss");
